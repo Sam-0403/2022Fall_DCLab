@@ -1,5 +1,5 @@
 `timescale 1ns/100ps
-`include "Lab0_alu.v"
+// `include "Lab0_alu.v"
 
 module test_alu;
 reg [7:0] inputA,inputB;
