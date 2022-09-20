@@ -73,7 +73,7 @@ always_comb begin
 
 		// else if (counter_r == compare_r) begin
 		if (counter_r == compare_r) begin
-			state_w         = S_PROC;
+			state_w         = S_RUNN;
 			LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9], LFSR_r[8], LFSR_r[7], LFSR_r[6], 
 			                    LFSR_r[5], LFSR_r[4], LFSR_r[3], LFSR_r[2], LFSR_r[1]};
 			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
@@ -89,7 +89,7 @@ always_comb begin
 		end
 
 		else begin
-			state_w         = S_PROC;
+			state_w         = S_RUNN;
 			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			counter_w       = counter_r + 1'b1;
 		end
