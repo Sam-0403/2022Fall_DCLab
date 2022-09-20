@@ -59,6 +59,7 @@ always_comb begin
 			state_w         = S_RUNN;
 			o_random_out_w  = {counter_r[3], counter_r[2], counter_r[1], counter_r[0]};
 			counter_w       = 32'b0;
+			compare_w 		= NUM_PERIOD;
 		end
 		else begin
 			counter_w       = counter_r + 1'b1;
