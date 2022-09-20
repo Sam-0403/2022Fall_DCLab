@@ -33,8 +33,8 @@ assign o_random_out = o_random_out_r;
 // ===== Combinational Circuits =====
 always_comb begin
 	// Default Values
-	o_random_out_w = o_random_out_r;
-	state_w        = state_r;
+    o_random_out_w = o_random_out_r;
+    state_w        = state_r;
     counter_w      = counter_r;
     compare_w      = compare_r;
     LFSR_w         = LFSR_r;
@@ -43,8 +43,8 @@ always_comb begin
 	case(state_r)
 	S_IDLE: begin
 		if (i_start) begin
-			state_w         = S_PROC;
-			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
+	        state_w         = S_PROC;
+	        o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
             counter_w       = 32'b0;
             compare_w       = 32'b1000_0000_0000;
 		end
@@ -52,11 +52,9 @@ always_comb begin
 
 	S_PROC: begin
 
-        
-
-		if (i_start) begin
-			// TODO: 截取亂數
-		end
+        if (i_start) begin
+            // TODO: 截取亂數
+        end
 
         else if (counter_r == compare_r) begin
             state_w         = S_PROC;
@@ -88,16 +86,16 @@ end
 always_ff @(posedge i_clk or negedge i_rst_n) begin
 	// reset
 	if (!i_rst_n) begin
-		o_random_out_r <= 4'd0;
-		state_r        <= S_IDLE;
+        o_random_out_r <= 4'd0;
+        state_r        <= S_IDLE;
         counter_r      <= 32'b0;
         compare_r      <= 32'b1000_0000_0000;
         LFSR_r         <= 10'b0;
 	end
 
 	else begin
-		o_random_out_r <= o_random_out_w;
-		state_r        <= state_w;
+        o_random_out_r <= o_random_out_w;
+        state_r        <= state_w;
         counter_r      <= counter_w;
         compare_r      <= compare_w;
         LFSR_r         <= LFSR_w;
