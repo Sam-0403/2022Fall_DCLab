@@ -70,7 +70,8 @@ always_comb begin
 		// if (i_start) begin
 		// 	// TODO: 截取亂數
 		// end
-
+		//試試看
+		
 		// else if (counter_r == compare_r) begin
 		if (counter_r == compare_r) begin
 			state_w         = S_RUNN;
