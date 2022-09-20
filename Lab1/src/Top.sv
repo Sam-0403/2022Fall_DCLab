@@ -25,7 +25,7 @@ logic [31:0] compare_r, compare_w;
 
 // Regs & Wires for LFSR
 // http://www.xilinx.com/support/documentation/application_notes/xapp052.pdf
-logic [9:0] LFSR_r = 10'b0, LFSR_w;
+logic [9:0] LFSR_r, LFSR_w;
 
 // ===== Output Assignments =====
 assign o_random_out = o_random_out_r;
@@ -62,14 +62,14 @@ always_comb begin
 			                    LFSR_r[5], LFSR_r[4], LFSR_r[3], LFSR_r[2], LFSR_r[1]};
 			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			counter_w       = counter_r + 1'b1;
-			compare_w       = compare_w << 1;
+			compare_w       = compare_r << 1;
 		end
 
 		else if (counter_r == 32'b111_1111_1111_1111_1111_1111_1111) begin
 			state_w         = S_IDLE;
 			LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9], LFSR_r[8], LFSR_r[7], LFSR_r[6], 
 			                    LFSR_r[5], LFSR_r[4], LFSR_r[3], LFSR_r[2], LFSR_r[1]};
-			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};             
+			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};           
 		end
 
 		else begin
