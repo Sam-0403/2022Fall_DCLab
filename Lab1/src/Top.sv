@@ -13,7 +13,7 @@ parameter S_PROC = 2'b01;
 parameter S_RUNN = 2'b10;
 
 // ===== Constants =====
-parameter NUM_PERIOD = 32'b1000_0000_0000_0000_0000_0000;
+parameter NUM_PERIOD = 32'b1000_0000_0000;
 
 // ===== Output Buffers =====
 logic [3:0] o_random_out_r, o_random_out_w;
@@ -71,7 +71,6 @@ always_comb begin
 		// if (i_start) begin
 		// 	// TODO: 截取亂數
 		// end
-		//試試看
 		
 		// else if (counter_r == compare_r) begin
 		if (counter_r == compare_r) begin
@@ -80,7 +79,7 @@ always_comb begin
 			                    LFSR_r[5], LFSR_r[4], LFSR_r[3], LFSR_r[2], LFSR_r[1]};
 			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			counter_w       = counter_r + 1'b1;
-			compare_w       = compare_r + NUM_PERIOD;
+			compare_w       = compare_r << 1;
 		end
 
 		else if (counter_r == 32'b111_1111_1111_1111_1111_1111_1111) begin
