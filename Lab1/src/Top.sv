@@ -13,7 +13,7 @@ parameter S_PROC = 2'b01;
 parameter S_RUNN = 2'b10;
 
 // ===== Constants =====
-parameter NUM_PERIOD = 32'b1_0000_0000_0000_0000_0000_0000;
+parameter NUM_PERIOD = 32'b1000_0000_0000_0000_0000_0000;
 
 // ===== Output Buffers =====
 logic [3:0] o_random_out_r, o_random_out_w;
@@ -50,14 +50,15 @@ always_comb begin
 			state_w         = S_PROC;
 			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			counter_w       = 32'b0;
-			compare_w       = 32'b1000_0000_0000;
+			compare_w       = NUM_PERIOD;
 		end
 	end
 
 	S_PROC: begin
 		if (i_start) begin
 			state_w         = S_RUNN;
-			o_random_out_w  = {counter_r[3], counter_r[2], counter_r[1], counter_r[0]};
+			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
+			// o_random_out_w  = {counter_r[3], counter_r[2], counter_r[1], counter_r[0]};
 			counter_w       = 32'b0;
 			compare_w 		= NUM_PERIOD;
 		end
