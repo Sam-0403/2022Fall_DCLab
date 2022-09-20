@@ -55,7 +55,7 @@ always_comb begin
 	end
 
 	S_PROC: begin
-		if (i_start) begin
+		if (i_start && counter_r > 10) begin
 			state_w         = S_RUNN;
 			o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			// o_random_out_w  = {counter_r[3], counter_r[2], counter_r[1], counter_r[0]};
