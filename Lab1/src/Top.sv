@@ -14,7 +14,7 @@ parameter S_PROC = 2'b01;
 parameter S_RUNN = 2'b10;
 
 // ===== Constants =====
-parameter NUM_PERIOD = 32'b10_0000_0000_0000;
+parameter NUM_PERIOD = 32'b10_0000_0000_0000_0000_0000;
 
 // ===== Output Buffers =====
 logic [3:0] o_random_out_r, o_random_out_w;
@@ -61,7 +61,6 @@ always_comb begin
 	S_IDLE: begin
 		if (i_start) begin
 			state_w         = S_PROC;
-			// o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			o_random_out_w  = 4'b0;
 			counter_seed_w  = 10'b0;
 			counter_w       = 32'b0;
@@ -72,10 +71,8 @@ always_comb begin
 	S_PROC: begin
 		if (i_start && counter_seed_r > 10) begin
 			state_w         = S_RUNN;
-			// o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			o_random_out_w  = 4'b0;
-			LFSR_w = counter_seed_r;
-			// o_random_out_w  = {counter_r[3], counter_r[2], counter_r[1], counter_r[0]};
+			LFSR_w 			= counter_seed_r;
 			counter_w       = 32'b0;
 			compare_w 		= NUM_PERIOD;
 		end
@@ -85,34 +82,22 @@ always_comb begin
 	end
 
 	S_RUNN: begin
-		// if (i_start) begin
-		// 	// TODO: 截取亂數
-		// end
-		
-		// else if (counter_r == compare_r) begin
 		if (counter_r == compare_r) begin
 			state_w         = S_RUNN;
-			// LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9], LFSR_r[8], LFSR_r[7], LFSR_r[6], 
-			//                     LFSR_r[5], LFSR_r[4], LFSR_r[3], LFSR_r[2], LFSR_r[1]};
 			LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9:1]};
-			// o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			o_random_out_w  = LFSR_r[3:0];
-			// counter_w       = counter_r + 1'b1;
 			counter_w       = 32'b0;
-			// compare_w       = compare_r << 1;
 			compare_w       = compare_r + NUM_PERIOD;
 		end
 
-		else if (counter_r == 32'b111_1111_1111_1111_1111_1111_1111) begin
+		else if (compare_r == 32'b10_0000_0000_0000_0000_0000_0000) begin
 			state_w         = S_IDLE;
-			LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9:1]};
-			// o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};        
+			LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9:1]};      
 			o_random_out_w  = LFSR_r[3:0];   
 		end
 
 		else begin
 			state_w         = S_RUNN;
-			// o_random_out_w  = {LFSR_r[3], LFSR_r[2], LFSR_r[1], LFSR_r[0]};
 			o_random_out_w  = LFSR_r[3:0];
 			counter_w       = counter_r + 1'b1;
 		end
