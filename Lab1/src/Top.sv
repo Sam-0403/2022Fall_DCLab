@@ -2,7 +2,8 @@ module Top (
 	input        i_clk,
 	input        i_rst_n,
 	input        i_start,
-	output [3:0] o_random_out
+	output [3:0] o_random_out,
+	output [1:0] o_state_out
 );
 
 // please check out the working example in lab1 README (or Top_exmaple.sv) first
@@ -32,17 +33,18 @@ logic [31:0] compare_r, compare_w;
 // http://www.xilinx.com/support/documentation/application_notes/xapp052.pdf
 logic [9:0] LFSR_r, LFSR_w;
 
-// ===== Modules =====
-Blink blink0 (
-	.i_clk(i_clk),
-	.i_rst_n(i_rst_n),
-	.i_state(state_r),
-	.i_random(o_random_out_r),
-    .led_out(LEDG[3:0]),
-);
+// // ===== Modules =====
+// Blink blink0 (
+// 	.i_clk(i_clk),
+// 	.i_rst_n(i_rst_n),
+// 	.i_state(state_r),
+// 	.i_random(o_random_out_r),
+//     .led_out(LEDG[3:0]),
+// );
 
 // ===== Output Assignments =====
 assign o_random_out = o_random_out_r;
+assign o_state_out  = state_r;
 
 // ===== Combinational Circuits =====
 always_comb begin
