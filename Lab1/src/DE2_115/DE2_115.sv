@@ -166,7 +166,7 @@ Blink blink0 (
 	.i_rst_n(i_rst_n),
 	.i_state(state),
 	.i_random(random_value),
-    .led_out(LEDG[3:0]),
+	.led_out(LEDR[15:0])
 );
 
 assign HEX2 = '1;
