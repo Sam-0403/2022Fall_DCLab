@@ -139,6 +139,7 @@ module DE2_115 (
 logic keydown;
 logic [3:0] random_value;
 logic [1:0] state;
+wire DLY_RST;
 
 Debounce deb0(
 	.i_in(KEY[0]),
@@ -167,6 +168,25 @@ Blink blink0 (
 	.i_state(state),
 	.i_random(random_value),
 	.led_out(LEDR[15:0])
+);
+
+assign    LCD_ON        =    1'b1;
+assign    LCD_BLON    =    1'b1;
+
+Reset_Delay reset_delay0    (
+	.iCLK(CLOCK_50),
+	.oRESET(DLY_RST)
+);
+
+LCD_TEST LCD_test0 (
+	//    Host Side
+	.iCLK(CLOCK_50),
+    .iRST_N(DLY_RST),
+    //    LCD Side
+    .LCD_DATA(LCD_DATA),
+    .LCD_RW(LCD_RW),
+    .LCD_EN(LCD_EN),
+    .LCD_RS(LCD_RS)
 );
 
 assign HEX2 = '1;

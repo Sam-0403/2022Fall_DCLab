@@ -2,4 +2,7 @@
 `include "Blink.sv"
 `include "DE2_115/SevenHexDecoder.sv"
 `include "DE2_115/Debounce.sv"
+`include "LCD/LCD_controller.sv"
+`include "LCD/LCD_test.sv"
+`include "LCD/Reset_Delay.sv"
 `include "DE2_115/DE2_115.sv"
