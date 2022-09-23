@@ -121,17 +121,19 @@ begin
     endcase
 end
 
-LCD_Controller         u0    (    //    Host Side
-                            .iDATA(mLCD_DATA),
-                            .iRS(mLCD_RS),
-                            .iStart(mLCD_Start),
-                            .oDone(mLCD_Done),
-                            .iCLK(iCLK),
-                            .iRST_N(iRST_N),
-                            //    LCD Interface
-                            .LCD_DATA(LCD_DATA),
-                            .LCD_RW(LCD_RW),
-                            .LCD_EN(LCD_EN),
-                            .LCD_RS(LCD_RS)    );
+LCD_Controller  LCD_controller0 (
+    //    Host Side
+    .iDATA(mLCD_DATA),
+    .iRS(mLCD_RS),
+    .iStart(mLCD_Start),
+    .oDone(mLCD_Done),
+    .iCLK(iCLK),
+    .iRST_N(iRST_N),
+    //    LCD Interface
+    .LCD_DATA(LCD_DATA),
+    .LCD_RW(LCD_RW),
+    .LCD_EN(LCD_EN),
+    .LCD_RS(LCD_RS)
+);
 
 endmodule
