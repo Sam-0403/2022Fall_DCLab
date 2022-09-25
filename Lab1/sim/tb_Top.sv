@@ -59,7 +59,7 @@ initial begin
 	@(negedge i_clk) i_start = 1;
 	@(negedge i_clk);
 	@(negedge i_clk) i_start = 0;
-	#32000000
+	#800000000
 	@(negedge i_clk) i_control = 1;
 	@(negedge i_clk);
 	@(negedge i_clk) i_control = 0;

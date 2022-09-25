@@ -38,6 +38,7 @@ logic [31:0] compare_r, compare_w;
 // Regs & Wires for Stored Value Index
 logic [63:0] stored_out_r, stored_out_w;
 logic [9:0] counter_index_r, counter_index_w;
+logic [5:0] stored_index_r, stored_index_w;
 
 // Regs & Wires for LFSR
 // http://www.xilinx.com/support/documentation/application_notes/xapp052.pdf
@@ -71,6 +72,7 @@ always_comb begin
 	o_stored_out_w  = o_stored_out_r;
 	stored_out_w  = stored_out_r;
 	counter_index_w = counter_index_r;
+	stored_index_w = stored_index_r;
 
 	// FSM
 	case(state_r)
@@ -108,7 +110,7 @@ always_comb begin
 			state_w         = S_RUNN;
 			LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9:1]};
 			o_random_out_w  = LFSR_r[3:0];
-			stored_out_w[counter_index_r+3:counter_index_r] = LFSR_r[3:0];
+			stored_out_w[counter_index_r +: 4] = LFSR_r[3:0];
 			counter_w       = 32'b0;
 			compare_w       = compare_r + NUM_PERIOD;
 			counter_index_w = counter_index_r + 10'b100;
@@ -122,7 +124,7 @@ always_comb begin
 		end
 
 		else if (i_control) begin
-			o_stored_out_w = stored_out_r[{i_index_3, i_index_2, i_index_1, i_index_0}<<2+3:{i_index_3, i_index_2, i_index_1, i_index_0}<<2];
+			o_stored_out_w = stored_out_r[stored_index_r +: 4];
 		end
 
 		else begin
@@ -147,6 +149,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		counter_r      <= 32'b0;
 		compare_r      <= NUM_PERIOD;
 		counter_index_r <= 10'b0;
+		stored_index_r <= 6'b0;
 		LFSR_r         <= 10'b0;
 	end
 
@@ -159,6 +162,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		counter_r      <= counter_w;
 		compare_r      <= compare_w;
 		counter_index_r <= counter_index_w;
+		stored_index_r <= {i_index_3, i_index_2, i_index_1, i_index_0, 1'b0, 1'b0};
 		LFSR_r         <= LFSR_w;
 	end
 end
