@@ -136,10 +136,15 @@ module DE2_115 (
 	inout [6:0] EX_IO
 );
 
+// Original
 logic keydown;
 logic [3:0] random_value;
 logic [1:0] state;
+// LCD
 wire DLY_RST;
+// Display
+logic keycheck;
+logic [3:0] stored_value;
 
 Debounce deb0(
 	.i_in(KEY[0]),
@@ -148,12 +153,24 @@ Debounce deb0(
 	.o_neg(keydown)
 );
 
+Debounce deb1(
+	.i_in(KEY[2]),
+	.i_rst_n(KEY[1]),
+	.i_clk(CLOCK_50),
+	.o_neg(keycheck)
+);
+
 Top top0(
 	.i_clk(CLOCK_50),
 	.i_rst_n(KEY[1]),
 	.i_start(keydown),
+	.i_control(keycheck),
+	.i_index_0(SW[0]),
+	.i_index_1(SW[1]),
+	.i_index_2(SW[2]),
+	.i_index_3(SW[3]),
 	.o_random_out(random_value),
-	.o_state_out(state)
+	.o_stored_out(stored_value)
 );
 
 SevenHexDecoder seven_dec0(
@@ -170,6 +187,7 @@ Blink blink0 (
 	.led_out(LEDR[15:0])
 );
 
+// Test for LCD
 assign    LCD_ON        =    1'b1;
 assign    LCD_BLON    =    1'b1;
 
@@ -189,10 +207,18 @@ LCD_TEST LCD_test0 (
     .LCD_RS(LCD_RS)
 );
 
+// Display for stored value
+SevenHexDecoder seven_dec1(
+	.i_hex(stored_value),
+	.o_seven_ten(HEX5),
+	.o_seven_one(HEX4)
+);
+
+
 assign HEX2 = '1;
 assign HEX3 = '1;
-assign HEX4 = '1;
-assign HEX5 = '1;
+// assign HEX4 = '1;
+// assign HEX5 = '1;
 assign HEX6 = '1;
 assign HEX7 = '1;
 
