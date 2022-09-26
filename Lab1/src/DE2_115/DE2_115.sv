@@ -145,6 +145,7 @@ wire DLY_RST;
 // Display
 logic keycheck;
 logic [3:0] stored_value;
+logic [1:0] state_value;
 
 Debounce deb0(
 	.i_in(KEY[0]),
@@ -170,7 +171,8 @@ Top top0(
 	.i_index_2(SW[2]),
 	.i_index_3(SW[3]),
 	.o_random_out(random_value),
-	.o_stored_out(stored_value)
+	.o_stored_out(stored_value),
+	.o_state_out(state_value)
 );
 
 SevenHexDecoder seven_dec0(
@@ -200,6 +202,7 @@ LCD_TEST LCD_test0 (
 	//    Host Side
 	.iCLK(CLOCK_50),
     .iRST_N(DLY_RST),
+	 .i_state(state_value),
     //    LCD Side
     .LCD_DATA(LCD_DATA),
     .LCD_RW(LCD_RW),

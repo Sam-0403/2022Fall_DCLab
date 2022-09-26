@@ -8,7 +8,8 @@ module Top (
 	input  		 i_index_2, //SW 2
 	input  		 i_index_3, //SW 3
 	output [3:0] o_random_out,
-	output [3:0] o_stored_out
+	output [3:0] o_stored_out,
+	output [1:0] o_state_out
 );
 
 // please check out the working example in lab1 README (or Top_exmaple.sv) first
@@ -44,18 +45,10 @@ logic [5:0] stored_index_r, stored_index_w;
 // http://www.xilinx.com/support/documentation/application_notes/xapp052.pdf
 logic [9:0] LFSR_r, LFSR_w;
 
-// // ===== Modules =====
-// Blink blink0 (
-// 	.i_clk(i_clk),
-// 	.i_rst_n(i_rst_n),
-// 	.i_state(state_r),
-// 	.i_random(o_random_out_r),
-//     .led_out(LEDG[3:0]),
-// );
-
 // ===== Output Assignments =====
 assign o_random_out = o_random_out_r;
 assign o_stored_out  = o_stored_out_r;
+assign o_state_out  = state_r;
 
 // ===== Combinational Circuits =====
 always_comb begin
@@ -80,12 +73,15 @@ always_comb begin
 		if (i_start) begin
 			state_w         = S_PROC;
 			o_random_out_w  = 4'b0;
-			o_stored_out_w  = 4'b0;
-			stored_out_w  = 64'b0;
+			o_stored_out_w  = o_stored_out_r;
+			stored_out_w  = stored_out_r;
 			counter_index_w = 10'b0;
 			counter_seed_w  = 10'b0;
 			counter_w       = 32'b0;
 			compare_w       = NUM_PERIOD;
+		end
+		else if (i_control) begin
+			o_stored_out_w = stored_out_r[stored_index_r +: 4];
 		end
 	end
 
@@ -94,8 +90,8 @@ always_comb begin
 			state_w         = S_RUNN;
 			o_random_out_w  = 4'b0;
 			o_stored_out_w  = 4'b0;
-			stored_out_w  = 64'b0;
-			counter_index_w = 10'b0;
+			stored_out_w  = {60'b0, counter_seed_r};
+			counter_index_w = 10'b100;
 			LFSR_w 			= counter_seed_r;
 			counter_w       = 32'b0;
 			compare_w 		= NUM_PERIOD;
@@ -110,10 +106,17 @@ always_comb begin
 			state_w         = S_RUNN;
 			LFSR_w          = {~(LFSR_r[0]^LFSR_r[3]), LFSR_r[9:1]};
 			o_random_out_w  = LFSR_r[3:0];
-			stored_out_w[counter_index_r +: 4] = LFSR_r[3:0];
+			stored_out_w[counter_index_r +: 4] = LFSR_r[4:1];
 			counter_w       = 32'b0;
 			compare_w       = compare_r + NUM_PERIOD;
 			counter_index_w = counter_index_r + 10'b100;
+		end
+		
+		else if (i_start) begin
+			state_w         = S_IDLE;
+			LFSR_w          = LFSR_r;      
+			o_random_out_w  = LFSR_r[3:0];   
+			counter_index_w = 10'b0;
 		end
 
 		else if (compare_r == 32'b10_0000_0000_0000_0000_0000_0000) begin
