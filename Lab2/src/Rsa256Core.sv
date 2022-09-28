@@ -11,10 +11,10 @@ module Rsa256Core (
 	output         o_finished
 );
 // ===== States =====
-parameter S_IDLE = 2'd0;
-parameter S_PREP = 2'd1;
-parameter S_MONT = 2'd2;
-parameter S_CALC = 2'd3;
+localparam S_IDLE = 2'd0;
+localparam S_PREP = 2'd1;
+localparam S_MONT = 2'd2;
+localparam S_CALC = 2'd3;
 
 // ===== Output Buffers =====
 logic [255:0] m_r, m_w;
@@ -96,34 +96,34 @@ always_comb begin
 			state_w		= S_PREP;
 			a_store_w	= i_a;
 		end
-		counter_w		= 8'b0;
-		i_prep_flag_w	= 1'b0;
-		i_mont_flag_w	= 1'b0;
-		t_w				= 256'b0;
-		m_w				= 256'b1;
+		counter_w		= 8'd0;
+		i_prep_flag_w	= 1'd0;
+		i_mont_flag_w	= 1'd0;
+		t_w				= 256'd0;
+		m_w				= 256'd1;
 		o_finish_w		= 1'b0;
 		d_index_w		= i_d;
 	end
 	S_PREP: begin
 		if(o_prep_flag_w) begin
 			state_w			= S_MONT;
-			i_prep_flag_w	= 1'b0;
+			i_prep_flag_w	= 1'd0;
 			t_w				= o_prep_w;
 		end
 		else begin
 			i_prep_flag_w	= 1'b1;
 		end
-		counter_w		= 8'b0;
-		i_mont_flag_w	= 1'b0;
+		counter_w		= 8'd0;
+		i_mont_flag_w	= 1'd0;
 		m_w				= m_r;
-		o_finish_w		= 1'b0;
+		o_finish_w		= 1'd0;
 		d_index_w		= d_index_r;
 		a_store_w		= a_store_r;
 	end
 	S_MONT: begin
 		if(o_mont1_flag_w & o_mont2_flag_w) begin
 			state_w			= S_CALC;
-			i_mont_flag_w	= 1'b0;
+			i_mont_flag_w	= 1'd0;
 			t_w				= o_mont2_w;
 			m_w				= (d_index_r[0]) ? o_mont1_w : m_r;
 		end
@@ -131,36 +131,39 @@ always_comb begin
 			i_mont_flag_w	= 1'b1;
 		end
 		counter_w		= counter_r;
-		i_prep_flag_w	= 1'b0;
-		o_finish_w		= 1'b0;
+		i_prep_flag_w	= 1'd0;
+		o_finish_w		= 1'd0;
 	end
 	S_CALC: begin
 		if(counter_r == 8'd255) begin
 			state_w			= S_IDLE;
-			counter_w		= 8'b0;
-			o_finish_w		= 1'b1;
+			counter_w		= 8'd0;
+			o_finish_w		= 1'd1;
 		end
 		else begin
 			state_w			= S_MONT;
-			counter_w		= counter_r + 8'b1;
-			o_finish_w		= 1'b0;
+			counter_w		= counter_r + 8'd1;
+			o_finish_w		= 1'd0;
 		end
-		i_prep_flag_w	= 1'b0;
-		i_mont_flag_w	= 1'b0;
+		i_prep_flag_w	= 1'd0;
+		i_mont_flag_w	= 1'd0;
 		d_index_w		= d_index_r >> 1;
 	end
 	endcase
 end
 
-// ===== Sequential Circuits =====
-always_ff @(posedge i_clk or negedge i_rst) begin
+always_ff @(posedge i_clk) begin
 	i_rst_delay <= i_rst;
+end
+
+// ===== Sequential Circuits =====
+always_ff @(posedge i_clk or negedge i_rst_new) begin
 	if(~i_rst_new) begin
 		state_r			<= S_IDLE;
 		counter_r		<= 8'd0;
-		t_r				<= 256'b0;
-		m_r				<= 256'b1;
-		o_finish_r		<= 1'b0;
+		t_r				<= 256'd0;
+		m_r				<= 256'd1;
+		o_finish_r		<= 1'd0;
 		d_index_r		<= i_d;
 		a_store_r		<= a_store_w;
 	end
@@ -190,8 +193,8 @@ module RsaPrep (
 	output         o_finish
 );
 // ===== States =====
-localparam S_IDLE = 1'b0;
-localparam S_PROC = 1'b1;
+localparam S_IDLE = 1'd0;
+localparam S_PROC = 1'd1;
 
 // ===== Output Buffers =====
 logic [256:0] data_r, data_w;
@@ -227,19 +230,22 @@ always_comb begin
 				state_w		= S_PROC;
 				data_w		= {1'b0, i_a};
 			end
-			counter_w		= 8'b0;
-			o_finish_w		= 1'b0;
+			else begin
+				data_w		= 257'd0;
+			end
+			counter_w		= 8'd0;
+			o_finish_w		= 1'd0;
 		end
 		S_PROC: begin
 			if(counter_r == 8'd255) begin
 				state_w		= S_IDLE;
-				counter_w	= 8'b0;
-				o_finish_w	= 1'b1;
+				counter_w	= 8'd0;
+				o_finish_w	= 1'd1;
 			end
 			else begin
 				state_w		= state_r;
-				counter_w	= counter_r + 1'b1;
-				o_finish_w	= 1'b0;
+				counter_w	= counter_r + 8'd1;
+				o_finish_w	= 1'd0;
 			end
 			data_w	= temp2_w;
 		end
@@ -330,8 +336,8 @@ always_comb begin
 			if(i_start) begin
 				state_w		= S_PROC;
 			end
-			counter_w		= 8'b0;
-			o_finish_w		= 1'b0;
+			counter_w		= 8'd0;
+			o_finish_w		= 1'd0;
 			data_w			= 257'd0;
 			a_index_w		= i_a;
 		end
@@ -344,9 +350,9 @@ always_comb begin
 			end
 			else begin
 				state_w		= state_r;
-				counter_w	= counter_r + 1'b1;
+				counter_w	= counter_r + 8'd1;
 				data_w		= temp3_w;
-				o_finish_w	= 1'b0;
+				o_finish_w	= 1'd0;
 			end
 			a_index_w		= a_index_r >> 1;
 		end
