@@ -299,7 +299,7 @@ logic state_r, state_w;
 // Regs & Wires for Counter (0~255)
 logic [7:0] counter_r, counter_w;
 // Wires for Temporary Value
-logic [256:0] temp1_w, temp2_w, temp3_w;
+logic [257:0] temp1_w, temp2_w, temp3_w;
 // Regs & Wires for Index of a (0~255)
 logic [255:0] a_index_r, a_index_w;
 
