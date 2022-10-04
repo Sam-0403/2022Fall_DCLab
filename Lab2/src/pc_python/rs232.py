@@ -19,6 +19,8 @@ assert fp_key and fp_enc and fp_dec
 
 key = fp_key.read(64)
 enc = fp_enc.read()
+# finish signal: key
+enc += key[0:31]
 assert len(enc) % 32 == 0
 
 s.write(key)

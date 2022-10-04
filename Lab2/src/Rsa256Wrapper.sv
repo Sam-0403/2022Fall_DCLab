@@ -27,6 +27,11 @@ logic [6:0] bytes_counter_r, bytes_counter_w;   // 0 ~ 127
 logic [4:0] avm_address_r, avm_address_w;
 logic avm_read_r, avm_read_w, avm_write_r, avm_write_w;
 
+// check if the data has reached the end
+logic data_finished_r, data_finished_w;
+// decide to reset or not
+logic rst;
+
 logic rsa_start_r, rsa_start_w;
 logic rsa_finished;
 logic [255:0] rsa_dec;
@@ -36,9 +41,11 @@ assign avm_read = avm_read_r;
 assign avm_write = avm_write_r;
 assign avm_writedata = dec_r[247-:8];
 
+assign rst = data_finished_r | avm_rst;
+
 Rsa256Core rsa256_core(
     .i_clk(avm_clk),
-    .i_rst(avm_rst),
+    .i_rst(rst),
     .i_start(rsa_start_r),
     .i_a(enc_r),
     .i_d(d_r),
@@ -77,6 +84,7 @@ always_comb begin
     state_w         = state_r;
     bytes_counter_w = bytes_counter_r;
     rsa_start_w     = rsa_start_r;
+	data_finished_w = data_finished_r;
     // FSM
     case(state_r)
         S_GET_KEY: begin
@@ -107,8 +115,19 @@ always_comb begin
                 end
                 else begin
                     enc_w   = (enc_r<<8) + avm_readdata[7:0];
-                    state_w     = S_WAIT_CALCULATE;
-                    rsa_start_w = 1'd1;
+
+					// check if the data is the finish signal
+					if(enc_w == n_w) begin
+						state_w     = S_GET_KEY;
+                        enc_w       = 256'd0;
+						bytes_counter_w = 7'd0;
+						data_finished_w = 1'b1;
+					end
+					else begin
+						state_w     = S_WAIT_CALCULATE;
+                    	rsa_start_w = 1'd1;
+					end
+                    
                 end
             end
         end
@@ -151,8 +170,8 @@ always_comb begin
     endcase
 end
 
-always_ff @(posedge avm_clk or posedge avm_rst) begin
-    if (avm_rst) begin
+always_ff @(posedge avm_clk or posedge rst) begin
+    if (rst) begin
         n_r <= 0;
         d_r <= 0;
         enc_r <= 0;
@@ -163,7 +182,9 @@ always_ff @(posedge avm_clk or posedge avm_rst) begin
         state_r <= S_GET_KEY;
         bytes_counter_r <= 0;
         rsa_start_r <= 0;
-    end else begin
+		data_finished_r <= 0;
+    end
+	else begin
         n_r <= n_w;
         d_r <= d_w;
         enc_r <= enc_w;
@@ -174,6 +195,7 @@ always_ff @(posedge avm_clk or posedge avm_rst) begin
         state_r <= state_w;
         bytes_counter_r <= bytes_counter_w;
         rsa_start_r <= rsa_start_w;
+		data_finished_r <= data_finished_w;
     end
 end
 
