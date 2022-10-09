@@ -30,7 +30,7 @@ logic avm_read_r, avm_read_w, avm_write_r, avm_write_w;
 // check if the data has reached the end
 logic data_finished_r, data_finished_w;
 // decide to reset or not
-logic rst;
+logic rst_r, rst_w;
 
 logic rsa_start_r, rsa_start_w;
 logic rsa_finished;
@@ -41,11 +41,9 @@ assign avm_read = avm_read_r;
 assign avm_write = avm_write_r;
 assign avm_writedata = dec_r[247-:8];
 
-assign rst = data_finished_r | avm_rst;
-
 Rsa256Core rsa256_core(
     .i_clk(avm_clk),
-    .i_rst(rst),
+    .i_rst(rst_r),
     .i_start(rsa_start_r),
     .i_a(enc_r),
     .i_d(d_r),
@@ -85,6 +83,7 @@ always_comb begin
     bytes_counter_w = bytes_counter_r;
     rsa_start_w     = rsa_start_r;
 	data_finished_w = data_finished_r;
+	rst_w = data_finished_r | avm_rst;
     // FSM
     case(state_r)
         S_GET_KEY: begin
@@ -196,6 +195,7 @@ always_ff @(posedge avm_clk or posedge rst) begin
         bytes_counter_r <= bytes_counter_w;
         rsa_start_r <= rsa_start_w;
 		data_finished_r <= data_finished_w;
+		rst_r <= rst_w;
     end
 end
 
