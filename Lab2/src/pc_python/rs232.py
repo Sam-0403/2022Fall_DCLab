@@ -28,7 +28,7 @@ for j in range(1):
     print(len(enc))
 
     s.write(key)
-    for i in range(0, len(enc), 32):
+    for i in range(0, len(enc)-1, 32):
         s.write(enc[i:i+32])
         print("Dec start")
         dec = s.read(31)
