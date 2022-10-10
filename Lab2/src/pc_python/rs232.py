@@ -17,8 +17,8 @@ while True:
     try:
         idx = input("Enter the encrypted file you want to send: ")
         fp_key = open('./golden/key.bin', 'rb')
-        fp_enc = open('./golden/enc{index}.bin'.format(index=idx+1), 'rb')
-        fp_dec = open('./test/dec{index}.bin'.format(index=idx+1), 'wb')
+        fp_enc = open('./golden/enc{index}.bin'.format(index=idx), 'rb')
+        fp_dec = open('./test/dec{index}.bin'.format(index=idx), 'wb')
         assert fp_key and fp_enc and fp_dec
 
         key = fp_key.read(64)
