@@ -12,7 +12,7 @@ s = Serial(
     xonxoff=False,
     rtscts=False
 )
-for i in range(3):
+for i in range(1):
     fp_key = open('./golden/key.bin', 'rb')
     fp_enc = open('./golden/enc{index}.bin'.format(index=i+1), 'rb')
     fp_dec = open('./test/dec{index}.bin'.format(index=i+1), 'wb')
