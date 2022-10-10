@@ -169,8 +169,8 @@ always_comb begin
     endcase
 end
 
-always_ff @(posedge avm_clk or posedge rst) begin
-    if (rst) begin
+always_ff @(posedge avm_clk or posedge rst_w) begin
+    if (rst_w) begin
         n_r <= 0;
         d_r <= 0;
         enc_r <= 0;
