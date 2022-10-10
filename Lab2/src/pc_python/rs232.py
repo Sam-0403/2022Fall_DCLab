@@ -21,7 +21,7 @@ for i in range(3):
     key = fp_key.read(64)
     enc = fp_enc.read()
     # finish signal: key
-    enc += key[0:31]    # add FINISH signal
+    enc += key    # add FINISH signal
     assert len(enc) % 32 == 0
 
     s.write(key)
