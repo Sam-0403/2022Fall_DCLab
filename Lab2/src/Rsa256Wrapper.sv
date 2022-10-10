@@ -116,7 +116,7 @@ always_comb begin
                     enc_w   = (enc_r<<8) + avm_readdata[7:0];
 
 					// check if the data is the finish signal
-					if(enc_w == n_w) begin
+					if(enc_w == n_w || enc_w == d_w) begin
 						state_w     = S_GET_KEY;
                         enc_w       = 256'd0;
 						bytes_counter_w = 7'd0;
