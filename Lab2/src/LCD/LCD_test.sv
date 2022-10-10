@@ -79,7 +79,7 @@ end
 
 always
 begin
-		case(LUT_INDEX)
+	case(LUT_INDEX)
 		//    Initial
         LCD_INTIAL+0:    LUT_DATA    <=    9'h038; //Fun set
         LCD_INTIAL+1:    LUT_DATA    <=    9'h00C; //dis on
@@ -123,7 +123,7 @@ begin
         LCD_LINE2+14:    LUT_DATA    <=    9'h130 + i_content[7:4];   // index5
         LCD_LINE2+15:    LUT_DATA    <=    9'h130 + i_content[3:0];   // index6
         default:        LUT_DATA    <=    9'h000;
-		endcase
+	endcase
 end
 
 LCD_Controller  LCD_controller0 (
