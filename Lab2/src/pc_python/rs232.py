@@ -12,7 +12,7 @@ s = Serial(
     xonxoff=False,
     rtscts=False
 )
-for j in range(1):
+for j in range(3):
     fp_key = open('./golden/key.bin', 'rb')
     fp_enc = open('./golden/enc{index}.bin'.format(index=j+1), 'rb')
     fp_dec = open('./test/dec{index}.bin'.format(index=j+1), 'wb')
@@ -28,12 +28,13 @@ for j in range(1):
     print(len(enc))
 
     s.write(key)
-    for i in range(0, len(enc)-64, 32):
+    for i in range(0, len(enc)-32, 32):
         s.write(enc[i:i+32])
         print("Dec start")
-        dec = s.read(31)
-        print("Dec end")
-        fp_dec.write(dec)
+        if i<=len(enc)-64:
+            dec = s.read(31)
+            print("Dec end")
+            fp_dec.write(dec)
 
     fp_key.close()
     fp_enc.close()
