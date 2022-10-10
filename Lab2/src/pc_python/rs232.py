@@ -13,9 +13,9 @@ s = Serial(
     rtscts=False
 )
 for i in range(3):
-    fp_key = open(f'./golden/key{i+1}.bin', 'rb')
-    fp_enc = open(f'./golden/enc{i+1}.bin', 'rb')
-    fp_dec = open(f'./test/dec{i+1}.bin', 'wb')
+    fp_key = open('./golden/key{index}.bin'.format(index=i+1), 'rb')
+    fp_enc = open('./golden/enc{index}.bin'.format(index=i+1), 'rb')
+    fp_dec = open('./test/dec{index}.bin'.format(index=i+1), 'wb')
     assert fp_key and fp_enc and fp_dec
 
     key = fp_key.read(64)
