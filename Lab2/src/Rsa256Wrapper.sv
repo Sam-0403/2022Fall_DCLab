@@ -27,14 +27,26 @@ logic [6:0] bytes_counter_r, bytes_counter_w;   // 0 ~ 127
 logic [4:0] avm_address_r, avm_address_w;
 logic avm_read_r, avm_read_w, avm_write_r, avm_write_w;
 
-// check if the data has reached the end
+// Check if the data has reached the end
 logic data_finished_r, data_finished_w;
-// decide to reset or not
+// Decide to reset or not
 logic rst_r, rst_w;
 
 logic rsa_start_r, rsa_start_w;
 logic rsa_finished;
 logic [255:0] rsa_dec;
+
+// Add our own reg and wire
+logic [9:0] file_counter_r, file_counter_w;        // At most 999 files
+logic [19:0] content_counter_r, content_counter_w;  // each file can be at most 999,999 bytes(~1MB)
+
+logic [21:0] dec_file_r, dec_file_w, temp_file_w;    // 0 ~ 999  (12bit+10bit)
+logic [3:0] cntr_file_r, cntr_file_w;   // count for 10 times
+logic rst_file_r, rst_file_w;
+
+logic [43:0] dec_content_r, dec_content_w, temp_content_w;  // 0 ~ 999,999  (24bit+20bit)
+logic [4:0] cntr_content_r, cntr_content_w; // count for 20 times
+logic rst_content_r, rst_content_w;
 
 assign avm_address = avm_address_r;
 assign avm_read = avm_read_r;
@@ -69,6 +81,30 @@ task StartWrite;
     end
 endtask
 
+// Module of LCD
+wire DLY_RST;
+
+assign    LCD_ON    =    1'b1;
+assign    LCD_BLON  =    1'b1;
+
+Reset_Delay reset_delay0(
+	.iCLK(avm_clk),
+	.oRESET(DLY_RST)
+);
+
+LCD_TEST LCD_test0 (
+	//    Host Side
+	.iCLK(avm_clk),
+    .iRST_N(DLY_RST),
+    .i_file(dec_file_r[21:10]),
+    .i_content(dec_content_r[43:20]),
+    //    LCD Side
+    .LCD_DATA(LCD_DATA),
+    .LCD_RW(LCD_RW),
+    .LCD_EN(LCD_EN),
+    .LCD_RS(LCD_RS)
+);
+
 always_comb begin
     // TODO
     avm_read_w = avm_read_r;
@@ -84,6 +120,12 @@ always_comb begin
     rsa_start_w     = rsa_start_r;
 	data_finished_w = data_finished_r;
 	rst_w = data_finished_r | avm_rst;
+    // Decimal display
+    content_counter_w   = content_counter_r;
+    file_counter_w      = file_counter_r;
+    rst_file_w      = rst_file_r;
+    rst_content_w   = rst_content_r;
+
     // FSM
     case(state_r)
         S_GET_KEY: begin
@@ -97,17 +139,23 @@ always_comb begin
         S_GET_DATA: begin
             if(~avm_waitrequest) begin
                 StartRead(STATUS_BASE);
-                // n: 0 ~ 31 bytes
+                // n: 1 ~ 32 bytes
                 if(bytes_counter_r<=7'd32) begin
                     n_w     = (n_r<<8) + avm_readdata[7:0];
                     state_w = S_GET_KEY;
+                    content_counter_w   = 20'd0;
+                    rst_content_w       = 1'b1;
+                    if(bytes_counter_r==7'd32) begin
+                        file_counter_w  = file_counter_r + 10'd1;
+                        rst_file_w      = 1'b1;
+                    end
                 end
-                // d: 32 ~ 63 bytes
+                // d: 33 ~ 64 bytes
                 else if(bytes_counter_r<=7'd64) begin
                     d_w     = (d_r<<8) + avm_readdata[7:0];
                     state_w = S_GET_KEY;
                 end
-                // enc: 64 ~ 95 bytes
+                // enc: 65 ~ 96 bytes
                 else if(bytes_counter_r<7'd96) begin
                     enc_w   = (enc_r<<8) + avm_readdata[7:0];
                     state_w = S_GET_KEY;
@@ -162,11 +210,71 @@ always_comb begin
                         state_w = S_GET_KEY;
                         // Get enc data
                         bytes_counter_w = 7'd64;
+                        content_counter_w   = content_counter_r + 20'd31;
+                        rst_content_w       = 1'b1;
                 	end
                 end
             end
         end
     endcase
+    if(rst_file_r) begin
+        if(cntr_file_r<=4'd10) begin
+            if(cntr_file_r==5'd0) begin
+                dec_file_w   = {12'd0, file_counter_r};
+                cntr_file_w  = cntr_file_r + 5'd1;
+            else begin
+                cntr_file_w = cntr_file_r + 4'd1;
+                temp_file_w  = dec_file_r << 1;
+                if(temp_file_w[21:18]>=4'b0101) begin
+                    dec_file_w[21:18] = temp_file_w[21:18]+4'b0011;
+                end
+                if(temp_file_w[17:14]>=4'b0101) begin
+                    dec_file_w[17:14] = temp_file_w[17:14]+4'b0011;
+                end
+                if(temp_file_w[13:10]>=4'b0101) begin
+                    dec_file_w[13:10] = temp_file_w[13:10]+4'b0011;
+                end
+            end
+        end
+        else begin
+            cntr_file_w = 4'd0;
+            rst_file_w  = 1'b0;
+        end
+    end
+    if(rst_content_r) begin
+        if(cntr_content_r<=5'd20) begin
+            if(cntr_content_r==5'd0) begin
+                dec_content_w   = {24'd0, content_counter_r};
+                cntr_content_w  = cntr_content_r + 5'd1;
+            end
+            else begin
+                cntr_content_w  = cntr_content_r + 5'd1;
+                temp_content_w  = dec_content_r << 1;
+                if(temp_content_w[43:40]>=4'b0101) begin
+                    dec_content_w[43:40] = temp_content_w[43:40]+4'b0011;
+                end
+                if(temp_content_w[39:36]>=4'b0101) begin
+                    dec_content_w[39:36] = temp_content_w[39:36]+4'b0011;
+                end
+                if(temp_content_w[35:32]>=4'b0101) begin
+                    dec_content_w[35:32] = temp_content_w[35:32]+4'b0011;
+                end
+                if(temp_content_w[31:28]>=4'b0101) begin
+                    dec_content_w[31:28] = temp_content_w[31:28]+4'b0011;
+                end
+                if(temp_content_w[27:24]>=4'b0101) begin
+                    dec_content_w[27:24] = temp_content_w[27:24]+4'b0011;
+                end
+                if(temp_content_w[23:20]>=4'b0101) begin
+                    dec_content_w[23:20] = temp_content_w[23:20]+4'b0011;
+                end
+            end
+        end
+        else begin
+            cntr_content_w = 5'd0;
+            rst_content_w  = 1'b0;
+        end
+    end
 end
 
 always_ff @(posedge avm_clk or posedge rst_w) begin
@@ -182,6 +290,15 @@ always_ff @(posedge avm_clk or posedge rst_w) begin
         bytes_counter_r <= 0;
         rsa_start_r <= 0;
 		data_finished_r <= 0;
+        // Dec display
+        file_counter_r      <= 10'd0;
+        content_counter_r   <= 20'd0;
+        dec_file_r      <= 22'd0;
+        cntr_file_r     <= 4'd0;
+        rst_file_r      <= 1'd0;
+        dec_content_r   <= 44'd0;
+        cntr_content_r  <= 5'd0;
+        rst_content_r   <= 1'd0;
     end
 	else begin
         n_r <= n_w;
@@ -196,6 +313,15 @@ always_ff @(posedge avm_clk or posedge rst_w) begin
         rsa_start_r <= rsa_start_w;
 		data_finished_r <= data_finished_w;
 		rst_r <= rst_w;
+        // Dec display
+        file_counter_r      <= file_counter_w;
+        content_counter_r   <= content_counter_w;
+        dec_file_r      <= dec_file_w;
+        cntr_file_r     <= cntr_file_w;
+        rst_file_r      <= rst_file_w;
+        dec_content_r   <= dec_content_w;
+        cntr_content_r  <= cntr_content_w;
+        rst_content_r   <= rst_content_w;
     end
 end
 
