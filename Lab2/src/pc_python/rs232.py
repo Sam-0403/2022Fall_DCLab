@@ -36,6 +36,8 @@ for j in range(3):
             dec = s.read(31)
             print("Dec end")
             fp_dec.write(dec)
+        else:
+            print("Finish signal sent")
 
     fp_key.close()
     fp_enc.close()
