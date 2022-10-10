@@ -23,11 +23,15 @@ for j in range(1):
     # finish signal: key
     enc += key    # add FINISH signal
     assert len(enc) % 32 == 0
+    print(key)
+    print(enc)
 
     s.write(key)
     for i in range(0, len(enc), 32):
         s.write(enc[i:i+32])
+        print("Dec start")
         dec = s.read(31)
+        print("Dec end")
         fp_dec.write(dec)
 
     fp_key.close()
