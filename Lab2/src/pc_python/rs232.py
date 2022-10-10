@@ -20,11 +20,12 @@ for j in range(1):
 
     key = fp_key.read(64)
     enc = fp_enc.read()
+    print(len(key))
+    print(len(enc))
     # finish signal: key
     enc += key    # add FINISH signal
     assert len(enc) % 32 == 0
-    print(key)
-    print(enc)
+    print(len(enc))
 
     s.write(key)
     for i in range(0, len(enc), 32):
