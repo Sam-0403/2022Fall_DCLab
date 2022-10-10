@@ -32,7 +32,7 @@ for j in range(3):
     for i in range(0, len(enc)-32, 32):
         s.write(enc[i:i+32])
         print("Dec start")
-        if i<=len(enc)-64:
+        if i<len(enc)-64:
             dec = s.read(31)
             print("Dec end")
             fp_dec.write(dec)
