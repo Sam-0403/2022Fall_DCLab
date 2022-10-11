@@ -48,8 +48,8 @@ always_comb begin
 		if(i_start) begin
 			state_w		= S_CALC;
 			enc_w		= i_enc;
-//			rail_1_w	= i_enc[255:128];
-//			rail_2_w	= i_enc[127:0];
+			rail_1_w	= i_enc[255:128];
+			rail_2_w	= i_enc[127:0];
 		end
 		counter_w		= 8'd0;
 		o_finish_w		= 1'b0;
@@ -66,11 +66,11 @@ always_comb begin
 			state_w			= S_CALC;
 			counter_w		= counter_r + 8'd1;
 			o_finish_w		= 1'd0;
-//			dec_w			= {dec_r[253:0], rail_1_r[127], rail_2_r[127]};
-//			rail_1_w 		= rail_1_r << 1;
-//			rail_2_w		= rail_2_r << 1;
-			dec_w[counter_r]	= enc_r[counter_r<<1];
-			dec_w[counter_r+8'd128]	= enc_r[counter_r<<1+1];
+			dec_w			= {dec_r[253:0], rail_1_r[127], rail_2_r[127]};
+			rail_1_w 		= rail_1_r << 1;
+			rail_2_w		= rail_2_r << 1;
+			// dec_w[counter_r]	= enc_r[counter_r<<1];
+			// dec_w[counter_r+8'd128]	= enc_r[counter_r<<1+1];
 		end
 	end
 	endcase
