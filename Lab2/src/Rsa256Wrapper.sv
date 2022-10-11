@@ -222,6 +222,7 @@ always_comb begin
             if(cntr_file_r==5'd0) begin
                 dec_file_w   = {12'd0, file_counter_r};
                 cntr_file_w  = cntr_file_r + 5'd1;
+            end
             else begin
                 cntr_file_w = cntr_file_r + 4'd1;
                 temp_file_w  = dec_file_r << 1;
