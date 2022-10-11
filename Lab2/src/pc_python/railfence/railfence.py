@@ -5,12 +5,17 @@ def enc(y):
 	y = format(y, '#0258b')[2:]
 	r1 = ""
 	r2 = ""
+	# print "\n"+y+"\n"
 	assert len(y)==256,"y length = {}".format(len(y))
 	for i in range(0, 256, 2):
 		r1 += y[i]
 		r2 += y[i+1]
 	assert len(r1)==128,"r1 length = {}".format(len(r1))
 	assert len(r2)==128,"r1 length = {}".format(len(r2))
+	# dec_bin = r1 + r2
+	# for i in range(0, 256, 8):
+	# print "\n"+r1+r2+"\n"
+
 	return int(r1+r2, 2)
 	
 def dec(y):
