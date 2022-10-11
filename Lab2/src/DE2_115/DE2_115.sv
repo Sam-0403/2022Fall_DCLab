@@ -136,13 +136,76 @@ module DE2_115 (
 	inout [6:0] EX_IO
 );
 
+// Module of LCD
+wire DLY_RST;
+logic [11:0] dec_file;
+logic [23:0] dec_content;
+
+assign    LCD_ON    =    1'b1;
+assign    LCD_BLON  =    1'b1;
+
+Reset_Delay reset_delay0(
+	.iCLK(CLOCK_50),
+	.oRESET(DLY_RST)
+);
+
+LCD_TEST LCD_test0 (
+	//    Host Side
+	.iCLK(CLOCK_50),
+    .iRST_N(DLY_RST),
+    .i_file(dec_file),
+    .i_content(dec_content),
+    //    LCD Side
+    .LCD_DATA(LCD_DATA),
+    .LCD_RW(LCD_RW),
+    .LCD_EN(LCD_EN),
+    .LCD_RS(LCD_RS)
+);
+
+SevenHexDecoder seven_dec0(
+	.i_hex(dec_content[3:0]),
+	.o_seven(HEX0)
+);
+SevenHexDecoder seven_dec1(
+	.i_hex(dec_content[7:4]),
+	.o_seven(HEX1)
+);
+SevenHexDecoder seven_dec2(
+	.i_hex(dec_content[11:8]),
+	.o_seven(HEX2)
+);
+SevenHexDecoder seven_dec3(
+	.i_hex(dec_content[15:12]),
+	.o_seven(HEX3)
+);
+SevenHexDecoder seven_dec4(
+	.i_hex(dec_content[19:16]),
+	.o_seven(HEX4)
+);
+SevenHexDecoder seven_dec5(
+	.i_hex(dec_content[23:20]),
+	.o_seven(HEX5)
+);
+SevenHexDecoder seven_dec6(
+	.i_hex(dec_file[3:0]),
+	.o_seven(HEX6)
+);
+SevenHexDecoder seven_dec7(
+	.i_hex(dec_file[7:4]),
+	.o_seven(HEX7)
+);
+
+
 // please replace this module with the qsys module you generated
 // and connect all the ports
 rsa_qsys my_qsys(
 	.clk_clk(CLOCK_50),
 	.reset_reset_n(KEY[0]),
 	.uart_0_external_connection_rxd(UART_RXD),
-	.uart_0_external_connection_txd(UART_TXD)
+	.uart_0_external_connection_txd(UART_TXD),
+	.dec_rsa_file_out(dec_file),
+	.dec_rsa_content_out(dec_content),
+	.rsa_type(SW[0])
 );
 
 endmodule

@@ -72,7 +72,7 @@ begin
             endcase
         end
 		  else begin
-			LUT_INDEX    <=    LCD_CH_LINE;
+			LUT_INDEX    <=    LCD_LINE1-1;
 		  end
     end
 end

@@ -15,10 +15,14 @@ s = Serial(
 while True:
     # print("Index: {index}".format(index=j+1))
     try:
-        idx = input("Enter the encrypted file you want to send: ")
+        type_enc = input("Enter the encrypted type (0:RS232/1:RailFence): ")
+        idx = input("Enter the encrypted file index: ")
         fp_key = open('./golden/key.bin', 'rb')
-        fp_enc = open('./golden/enc{index}.bin'.format(index=idx), 'rb')
         fp_dec = open('./test/dec{index}.bin'.format(index=idx), 'wb')
+        if type_enc=="1":
+            fp_enc = open('./railfence/enc{index}.bin'.format(index=idx), 'rb')
+        else:
+            fp_enc = open('./golden/enc{index}.bin'.format(index=idx), 'rb')
         assert fp_key and fp_enc and fp_dec
 
         key = fp_key.read(64)
