@@ -3,18 +3,17 @@
 `define HCYCLE 5.0
 
 module tb;
-    logic [15:0] data_base1;
-    logic        data_base2;
+    parameter NUM_DATA = 4;
+    integer error, num;
+
     logic clock, stop, check;
-    integer error, num, i;
-    parameter pattern_num = 4;
 
     logic rst, daclrck, enable;
     logic [15:0] dac_data;
     logic o_aud_dacdat;
 
-    integer cnt1, cnt2;
-    logic [63:0] DATA = {
+    integer cnt;
+    logic [16*NUM_DATA-1:0] DATA = {
         16'b1011_1010_0000_1110,
         16'b0101_1110_0011_1010,
         16'b1110_1010_0001_1001,
@@ -28,7 +27,6 @@ module tb;
     always begin #(`HCYCLE) clock = ~clock;
     end
 
-    //DUT
     AudPlayer player(
         .i_rst_n      (rst),
         .i_bclk       (clock),
@@ -40,19 +38,20 @@ module tb;
 
     //Read file
     initial begin
-        error = 0; stop = 1'b0; i = 1;
-        #(`CYCLE * (44 * pattern_num + 10)) stop = 1'b1;
+        error = 0; stop = 1'b0;
+        #(`CYCLE * (44 * NUM_DATA + 10)) stop = 1'b1;
     end
 
     //Test
     initial begin
-        rst = 1'b1; check = 1'b0; enable = 1'b0; daclrck = 1'b1;
+        rst = 1'b1; check = 1'b0; enable = 1'b0; daclrck = 1'b1; cnt = NUM_DATA
         #(`CYCLE * 2.5) rst = 1'b0;
         #(`CYCLE * 3) rst = 1'b1;
 
         #(`CYCLE * 2) enable = 1'b1;
         #(`CYCLE * 2) daclrck = 1'b0;
-        dac_data = DATA[63:48];
+        dac_data = DATA[16*cnt - 1 : 16*(cnt-1)];
+        cnt--;
         #(`CYCLE * 1) check = 1'b1;
         #(`CYCLE * 16) check = 1'b0;
         #(`CYCLE * 3) daclrck = 1'b1; 
@@ -60,7 +59,8 @@ module tb;
 
         #(`CYCLE * 2) enable = 1'b1;
         #(`CYCLE * 2) daclrck = 1'b0;
-        dac_data = DATA[47:32];
+        dac_data = DATA[16*cnt - 1 : 16*(cnt-1)];
+        cnt--;
         #(`CYCLE * 1) check = 1'b1;
         #(`CYCLE * 16) check = 1'b0;
         #(`CYCLE * 3) daclrck = 1'b1; 
@@ -68,7 +68,8 @@ module tb;
 
         #(`CYCLE * 2) enable = 1'b1;
         #(`CYCLE * 2) daclrck = 1'b0;
-        dac_data = DATA[31:16];
+        dac_data = DATA[16*cnt - 1 : 16*(cnt-1)];
+        cnt--;
         #(`CYCLE * 1) check = 1'b1;
         #(`CYCLE * 16) check = 1'b0;
         #(`CYCLE * 3) daclrck = 1'b1; 
@@ -76,106 +77,12 @@ module tb;
 
         #(`CYCLE * 2) enable = 1'b1;
         #(`CYCLE * 2) daclrck = 1'b0;
-        dac_data = DATA[15:0];
+        dac_data = DATA[16*cnt - 1 : 16*(cnt-1)];
+        cnt--;
         #(`CYCLE * 1) check = 1'b1;
         #(`CYCLE * 16) check = 1'b0;
         #(`CYCLE * 3) daclrck = 1'b1; 
         #(`CYCLE * 20) enable = 1'b0;
-    end
-
-    //Check
-    initial begin
-        #(`CYCLE * 6)
-
-
-        // for(cnt1=3, cnt2=15; cnt1>=0; cnt1--) begin
-        //     #(`CYCLE * 5) data_base2 = DATA[cnt1*16+cnt2];
-        //     for(cnt2=14; cnt2>=0; cnt2--) begin
-        //         #(`CYCLE * 1) data_base2 = DATA[cnt1*16+cnt2];
-        //     end
-        //     #(`CYCLE * 24)
-        // end
-
-        #(`CYCLE * 5) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 24)
-
-        #(`CYCLE * 5) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 24)
-
-        #(`CYCLE * 5) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 24)
-
-        #(`CYCLE * 5) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-        #(`CYCLE * 1) data_base2 = 0;
-        #(`CYCLE * 1) data_base2 = 1;
-    end
-
-    always@(negedge clock) begin
-        if(check) begin
-            i <= i + 1;
-            if(o_aud_dacdat !== data_base2) begin
-                error <= error + 1;
-                $display("An ERROR occurs at no.%d pattern: player_out %b != answer %b.\n", i, o_aud_dacdat, data_base2);
-            end
-        end
     end
 
     initial begin
