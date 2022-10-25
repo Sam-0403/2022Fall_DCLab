@@ -57,7 +57,8 @@ parameter S_RECD_PAUSE = 3;
 parameter S_PLAY       = 4;
 parameter S_PLAY_PAUSE = 5;
 
-logic i2c_oen, i2c_sdat;
+logic i2c_oen;
+wire i2c_sdat;
 logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
 
@@ -155,7 +156,7 @@ always_comb begin
 		end
 		S_IDLE: begin
 			if(recorder_start) begin
-				state_w = S_RECORD;
+				state_w = S_RECD;
 			end
 			else if(dsp_start) begin
 				state_w = S_PLAY;
@@ -164,12 +165,12 @@ always_comb begin
 				state_w = state_r;
 			end
 		end
-		S_RECORD: begin
+		S_RECD: begin
 			if(recorder_stop) begin
 				state_w = S_IDLE;
 			end
 			else if(recorder_pause) begin
-				state_w = S_RECORD_PAUSE;
+				state_w = S_RECD_PAUSE;
 			end
 			else begin
 				state_w = state_r;
@@ -186,9 +187,9 @@ always_comb begin
 				state_w = state_r;
 			end
 		end
-		S_RECORD_PAUSE: begin
+		S_RECD_PAUSE: begin
 			if(recorder_start) begin
-				state_w = S_RECORD;
+				state_w = S_RECD;
 			end
 			else if(recorder_stop) begin
 				state_w = S_IDLE;
@@ -211,7 +212,7 @@ always_comb begin
 	endcase
 end
 
-always_ff @(posedge i_AUD_BCLK or posedge i_rst_n) begin
+always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		state_r <= S_I2C;
 		i2c_start <= 1;

@@ -7,7 +7,7 @@ module AudRecorder(
 	input i_stop,
 	input i_data,
 	output [19:0] o_address,
-	output [15:0] o_data,
+	output [15:0] o_data
 );
 
 // ===== States =====
@@ -72,7 +72,7 @@ always_comb begin
                 addr_w      = addr_r;
                 data_w      = 16'd0;
             end
-            else if(Bctr<5'd16) begin //record right channel
+            else if(counter_r<5'd16) begin //record right channel
                 state_w     = S_DATA;
                 counter_w   = counter_r + 5'd1;
                 addr_w      = addr_r;
