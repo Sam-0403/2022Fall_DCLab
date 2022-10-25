@@ -46,7 +46,7 @@ module Top (
 
 	// LED
 	// output  [8:0] o_ledg,
-	// output [17:0] o_ledr
+	output [17:0] o_ledr
 );
 
 // design the FSM and states as you like
@@ -74,14 +74,6 @@ assign o_SRAM_OE_N = 1'b0;
 assign o_SRAM_LB_N = 1'b0;
 assign o_SRAM_UB_N = 1'b0;
 
-assign dsp_start 	  = i_key_0 && ((state_r == S_IDLE) || (state_r == S_PLAY_PAUSE));
-assign dsp_pause 	  = i_key_1 && (state_r == S_PLAY);
-assign dsp_stop  	  = i_key_2 && ((state_r == S_PLAY) || (state_r == S_PLAY_PAUSE));
-assign player_enable  = (state_w == S_PLAY);
-assign recorder_start = i_key_1 && ((state_r == S_IDLE) || (state_r == S_RECORD_PAUSE));
-assign recorder_pause = i_key_0 && (state_r == S_RECORD);
-assign recorder_stop  = i_key_2 && ((state_r == S_RECORD) || (state_r == S_RECORD_PAUSE));
-
 // below is a simple example for module division
 // you can design these as you like
 
@@ -91,6 +83,14 @@ logic i2c_start, i2c_finish;
 logic dsp_start, dsp_stop, dsp_pause;
 logic player_enable;
 logic recorder_start, recorder_pause, recorder_stop;
+
+assign dsp_start 	  = i_key_0 && ((state_r == S_IDLE) || (state_r == S_PLAY_PAUSE));
+assign dsp_pause 	  = i_key_1 && (state_r == S_PLAY);
+assign dsp_stop  	  = i_key_2 && ((state_r == S_PLAY) || (state_r == S_PLAY_PAUSE));
+assign player_enable  = (state_w == S_PLAY);
+assign recorder_start = i_key_1 && ((state_r == S_IDLE) || (state_r == S_RECD_PAUSE));
+assign recorder_pause = i_key_0 && (state_r == S_RECD);
+assign recorder_stop  = i_key_2 && ((state_r == S_RECD) || (state_r == S_RECD_PAUSE));
 
 // === I2cInitializer ===
 // sequentially sent out settings to initialize WM8731 with I2C protocal
@@ -146,6 +146,13 @@ AudRecorder recorder0(
 	.i_data(i_AUD_ADCDAT),
 	.o_address(addr_record),
 	.o_data(data_record),
+);
+
+//=== LED ===
+LEDVolume led0(
+	.i_record(state_r == S_RECD),
+	.i_data(data_record),
+	.o_led_r(o_ledr)
 );
 
 always_comb begin

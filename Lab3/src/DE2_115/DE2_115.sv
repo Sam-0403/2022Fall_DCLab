@@ -220,7 +220,7 @@ Top top0(
 
 	// LED
 	// .o_ledg(LEDG), // [8:0]
-	// .o_ledr(LEDR) // [17:0]
+	.o_ledr(LEDR) // [17:0]
 );
 
 // SevenHexDecoder seven_dec0(
