@@ -74,6 +74,14 @@ assign o_SRAM_OE_N = 1'b0;
 assign o_SRAM_LB_N = 1'b0;
 assign o_SRAM_UB_N = 1'b0;
 
+assign dsp_start 	  = i_key_0 && ((state_r == S_IDLE) || (state_r == S_PLAY_PAUSE));
+assign dsp_pause 	  = i_key_1 && (state_r == S_PLAY);
+assign dsp_stop  	  = i_key_2 && ((state_r == S_PLAY) || (state_r == S_PLAY_PAUSE));
+assign player_enable  = (state_w == S_PLAY);
+assign recorder_start = i_key_1 && ((state_r == S_IDLE) || (state_r == S_RECORD_PAUSE));
+assign recorder_pause = i_key_0 && (state_r == S_RECORD);
+assign recorder_stop  = i_key_2 && ((state_r == S_RECORD) || (state_r == S_RECORD_PAUSE));
+
 // below is a simple example for module division
 // you can design these as you like
 
