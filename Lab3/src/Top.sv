@@ -4,7 +4,11 @@ module Top (
 	input i_key_0,
 	input i_key_1,
 	input i_key_2,
-	// input [3:0] i_speed, // design how user can decide mode on your own
+
+	input [2:0] i_speed,
+	input i_fast,
+	input i_slow_0,
+	input i_slow_1,
 	
 	// AudDSP and SRAM
 	output [19:0] o_SRAM_ADDR,
@@ -73,7 +77,11 @@ assign o_SRAM_UB_N = 1'b0;
 // you can design these as you like
 
 // ===== Registers & Wires =====
+logic [2:0] state_r, state_w;
 logic i2c_start, i2c_finish;
+logic dsp_start, dsp_stop, dsp_pause;
+logic player_enable;
+logic recorder_start, recorder_pause, recorder_stop;
 
 // === I2cInitializer ===
 // sequentially sent out settings to initialize WM8731 with I2C protocal
@@ -92,14 +100,14 @@ I2cInitializer init0(
 // in other words, determine which data addr to be fetch for player 
 AudDSP dsp0(
 	.i_rst_n(i_rst_n),
-	.i_clk(),
-	.i_start(),
-	.i_pause(),
-	.i_stop(),
-	.i_speed(),
-	.i_fast(),
-	.i_slow_0(), // constant interpolation
-	.i_slow_1(), // linear interpolation
+	.i_clk(i_clk),
+	.i_start(dsp_start),
+	.i_pause(dsp_pause),
+	.i_stop(dsp_stop),
+	.i_speed(i_speed),
+	.i_fast(i_fast),
+	.i_slow_0(i_slow_0), // constant interpolation
+	.i_slow_1(i_slow_1), // linear interpolation
 	.i_daclrck(i_AUD_DACLRCK),
 	.i_sram_data(data_play),
 	.o_dac_data(dac_data),
@@ -112,7 +120,7 @@ AudPlayer player0(
 	.i_rst_n(i_rst_n),
 	.i_bclk(i_AUD_BCLK),
 	.i_daclrck(i_AUD_DACLRCK),
-	.i_en(), // enable AudPlayer only when playing audio, work with AudDSP
+	.i_en(player_enable), // enable AudPlayer only when playing audio, work with AudDSP
 	.i_dac_data(dac_data), //dac_data
 	.o_aud_dacdat(o_AUD_DACDAT)
 );
@@ -123,9 +131,9 @@ AudRecorder recorder0(
 	.i_rst_n(i_rst_n), 
 	.i_clk(i_AUD_BCLK),
 	.i_lrc(i_AUD_ADCLRCK),
-	.i_start(),
-	.i_pause(),
-	.i_stop(),
+	.i_start(recorder_start),
+	.i_pause(recorder_pause),
+	.i_stop(recorder_stop),
 	.i_data(i_AUD_ADCDAT),
 	.o_address(addr_record),
 	.o_data(data_record),
@@ -133,14 +141,84 @@ AudRecorder recorder0(
 
 always_comb begin
 	// design your control here
+	// default
+	state_w = state_r;
+	// FSM
+	case(state_r)
+		S_I2C: begin
+			if(i2c_finish) begin
+				state_w = S_IDLE;
+			end
+			else begin
+				state_w = state_r;
+			end
+		end
+		S_IDLE: begin
+			if(recorder_start) begin
+				state_w = S_RECORD;
+			end
+			else if(dsp_start) begin
+				state_w = S_PLAY;
+			end
+			else begin
+				state_w = state_r;
+			end
+		end
+		S_RECORD: begin
+			if(recorder_stop) begin
+				state_w = S_IDLE;
+			end
+			else if(recorder_pause) begin
+				state_w = S_RECORD_PAUSE;
+			end
+			else begin
+				state_w = state_r;
+			end
+		end
+		S_PLAY: begin
+			if(dsp_stop) begin
+				state_w = S_IDLE;
+			end
+			else if(dsp_pause) begin
+				state_w = S_PLAY_PAUSE;
+			end
+			else begin
+				state_w = state_r;
+			end
+		end
+		S_RECORD_PAUSE: begin
+			if(recorder_start) begin
+				state_w = S_RECORD;
+			end
+			else if(recorder_stop) begin
+				state_w = S_IDLE;
+			end
+			else begin
+				state_w = state_r;
+			end
+		end
+		S_PLAY_PAUSE: begin
+			if(dsp_start) begin
+				state_w = S_PLAY;
+			end
+			else if(dsp_stop) begin
+				state_w = S_IDLE;
+			end
+			else begin
+				state_w = state_r;
+			end
+		end
+	endcase
 end
 
 always_ff @(posedge i_AUD_BCLK or posedge i_rst_n) begin
 	if (!i_rst_n) begin
-		
+		state_r <= S_I2C;
+		i2c_start <= 1;
 	end
 	else begin
-		
+		state_r <= state_w;
+		i2c_start <= 1;
 	end
 end
 
