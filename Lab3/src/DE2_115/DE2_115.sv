@@ -225,6 +225,16 @@ Top top0(
 	.o_ledr(LEDR) // [17:0]
 );
 
+wire DLY_RST;
+
+assign    LCD_ON    =    1'b1;
+assign    LCD_BLON  =    1'b1;
+
+Reset_Delay reset_delay0(
+	.iCLK(CLOCK_50),
+	.oRESET(DLY_RST)
+);
+
 LCD_TEST LCD_test0 (
 	//    Host Side
 	.iCLK(CLOCK_50),
