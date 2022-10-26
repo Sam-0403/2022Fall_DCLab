@@ -30,6 +30,7 @@ module Top (
 	inout  i_AUD_BCLK,
 	inout  i_AUD_DACLRCK,
 	output o_AUD_DACDAT,
+	output [2:0] o_state,
 
 	// SEVENDECODER (optional display)
 	// output [5:0] o_record_time,
@@ -80,6 +81,7 @@ assign o_SRAM_CE_N = 1'b0;
 assign o_SRAM_OE_N = 1'b0;
 assign o_SRAM_LB_N = 1'b0;
 assign o_SRAM_UB_N = 1'b0;
+assign o_state = state_r;
 
 // below is a simple example for module division
 // you can design these as you like

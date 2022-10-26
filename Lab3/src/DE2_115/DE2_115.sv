@@ -138,6 +138,7 @@ module DE2_115 (
 
 logic key0down, key1down, key2down, key3down;
 logic CLK_12M, CLK_100K, CLK_800K;
+logic [2:0] state
 
 assign AUD_XCK = CLK_12M;
 
@@ -204,6 +205,7 @@ Top top0(
 	.i_AUD_BCLK(AUD_BCLK),
 	.i_AUD_DACLRCK(AUD_DACLRCK),
 	.o_AUD_DACDAT(AUD_DACDAT),
+	.o_state(state),
 
 	// SEVENDECODER (optional display)
 	// .o_record_time(recd_time),
@@ -221,6 +223,18 @@ Top top0(
 	// LED
 	// .o_ledg(LEDG), // [8:0]
 	.o_ledr(LEDR) // [17:0]
+);
+
+LCD_TEST LCD_test0 (
+	//    Host Side
+	.iCLK(CLOCK_50),
+    .iRST_N(DLY_RST),
+    .i_state(state),
+    //    LCD Side
+    .LCD_DATA(LCD_DATA),
+    .LCD_RW(LCD_RW),
+    .LCD_EN(LCD_EN),
+    .LCD_RS(LCD_RS)
 );
 
 // SevenHexDecoder seven_dec0(
