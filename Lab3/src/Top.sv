@@ -89,7 +89,7 @@ assign o_state = state_r;
 assign dsp_start 	  = i_key_0 && ((state_r == S_IDLE) || (state_r == S_PLAY_PAUSE));
 assign dsp_pause 	  = i_key_1 && (state_r == S_PLAY);
 assign dsp_stop  	  = i_key_2 && ((state_r == S_PLAY) || (state_r == S_PLAY_PAUSE));
-assign player_enable  = (state_w == S_PLAY);
+assign player_enable  = (state_r == S_PLAY);
 assign recorder_start = i_key_1 && ((state_r == S_IDLE) || (state_r == S_RECD_PAUSE));
 assign recorder_pause = i_key_0 && (state_r == S_RECD);
 assign recorder_stop  = i_key_2 && ((state_r == S_RECD) || (state_r == S_RECD_PAUSE));
