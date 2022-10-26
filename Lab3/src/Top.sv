@@ -29,7 +29,7 @@ module Top (
 	inout  i_AUD_ADCLRCK,
 	inout  i_AUD_BCLK,
 	inout  i_AUD_DACLRCK,
-	output o_AUD_DACDAT
+	output o_AUD_DACDAT,
 
 	// SEVENDECODER (optional display)
 	// output [5:0] o_record_time,
@@ -62,6 +62,13 @@ wire i2c_sdat;
 logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
 
+// ===== Registers & Wires =====
+logic [2:0] state_r, state_w;
+logic i2c_start, i2c_finish;
+logic dsp_start, dsp_stop, dsp_pause;
+logic player_enable;
+logic recorder_start, recorder_pause, recorder_stop;
+
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
 assign o_SRAM_ADDR = (state_r == S_RECD) ? addr_record : addr_play[19:0];
@@ -76,13 +83,6 @@ assign o_SRAM_UB_N = 1'b0;
 
 // below is a simple example for module division
 // you can design these as you like
-
-// ===== Registers & Wires =====
-logic [2:0] state_r, state_w;
-logic i2c_start, i2c_finish;
-logic dsp_start, dsp_stop, dsp_pause;
-logic player_enable;
-logic recorder_start, recorder_pause, recorder_stop;
 
 assign dsp_start 	  = i_key_0 && ((state_r == S_IDLE) || (state_r == S_PLAY_PAUSE));
 assign dsp_pause 	  = i_key_1 && (state_r == S_PLAY);
