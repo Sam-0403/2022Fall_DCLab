@@ -45,6 +45,8 @@ logic [1:0] counter1_r, counter1_w; // 0~3: 3rd means 3 bytes are sent
 logic [3:0] counter2_r, counter2_w; // 0~8: 8th cycle send high impedence(oen=1)
 logic is_setup_r, is_setup_w;
 
+logic [3:0] counter_test_r, counter_test_w; 
+
 // ===== Output Assignments =====
 assign o_finished   = finish_r;
 assign o_sclk       = sclk_r;
@@ -64,7 +66,14 @@ always_comb begin
     counter1_w      = counter1_r;
     counter2_w      = counter2_r;
     is_setup_w      = is_setup_r;
+	 
+	 counter_test_w = counter_test_r+4'd1;
+//	 if(counter_test_r==4'b1111) begin
+//		finish_w = 1'b1;
+//	 end
+	 
     // FSM
+	 
     case(state_r)
         S_IDLE: begin
             if(i_start) begin
@@ -156,6 +165,7 @@ always_comb begin
 			end
         end
     endcase
+	 
 end
 
 // ===== Sequential Circuits =====
@@ -170,6 +180,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		state_sclk_r    <= SCLK_READY;
 		finish_r        <= 1'b0;
         is_setup_r      <= 1'b0;
+		  counter_test_r <= 4'b0;
 	end
     else begin
         state_r         <= state_w;
@@ -181,6 +192,7 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		state_sclk_r    <= state_sclk_w;
 		finish_r        <= finish_w;
         is_setup_r      <= is_setup_w;
+		  counter_test_r <= counter_test_w;
 	end
 end
 

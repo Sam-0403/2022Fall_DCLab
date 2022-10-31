@@ -94,15 +94,16 @@ always_comb begin
                     end
                 end
                 else if(i_slow_1) begin
-                    o_dac_data_w = (prev_data_r * (1 + $signed(i_speed) - $signed(counter_r)) + $signed(i_sram_data) * $signed(counter_r)) / (1 + $signed(i_speed));
-                    if(counter_r > i_speed) begin
+                    o_dac_data_w = (prev_data_r * $signed(4'b0001+({1'b0, i_speed})-counter_r) + $signed(i_sram_data) * $signed(counter_r)) / $signed(4'b0001+({1'b0, i_speed}));
+                    prev_data_w = 16'b0;
+						  if(counter_r > i_speed) begin
                         prev_data_w = (!prev_daclrck_r && i_daclrck)? $signed(i_sram_data) : prev_data_r;
                         o_sram_addr_w = (prev_daclrck_r && !i_daclrck)? o_sram_addr_r + 20'd1 : o_sram_addr_r;
                         counter_w = (prev_daclrck_r && !i_daclrck)? 4'd1 : counter_r;
                     end
                     else begin
+								prev_data_w = prev_data_r;
                         o_sram_addr_w = o_sram_addr_r;
-                        prev_data_w = prev_data_r;
                         counter_w = (prev_daclrck_r && !i_daclrck)? (counter_r + 4'd1) : counter_r;
                     end
                 end

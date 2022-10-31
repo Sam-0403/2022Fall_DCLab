@@ -122,12 +122,12 @@ begin
         LCD_LINE2+7:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+8:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+9:    LUT_DATA    <=    9'h120; // SP
-        LCD_LINE2+10:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+11:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+12:    LUT_DATA    <=    9'h149 // I
-        LCD_LINE2+13:    LUT_DATA    <=    9'h144 // D
-        LCD_LINE2+14:    LUT_DATA    <=    9'h14c // L
-        LCD_LINE2+15:    LUT_DATA    <=    9'h145 // E
+        LCD_LINE2+10:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+11:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+12:    LUT_DATA    <=    9'h149; // I
+        LCD_LINE2+13:    LUT_DATA    <=    9'h144; // D
+        LCD_LINE2+14:    LUT_DATA    <=    9'h14c; // L
+        LCD_LINE2+15:    LUT_DATA    <=    9'h145; // E
         default:        LUT_DATA    <=    9'h000;
 	endcase
     end
@@ -169,12 +169,12 @@ begin
         LCD_LINE2+7:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+8:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+9:    LUT_DATA    <=    9'h120; // SP
-        LCD_LINE2+10:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+11:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+12:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+13:    LUT_DATA    <=    9'h149 // I
-        LCD_LINE2+14:    LUT_DATA    <=    9'h132 // 2
-        LCD_LINE2+15:    LUT_DATA    <=    9'h143 // C
+        LCD_LINE2+10:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+11:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+12:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+13:    LUT_DATA    <=    9'h149; // I
+        LCD_LINE2+14:    LUT_DATA    <=    9'h132; // 2
+        LCD_LINE2+15:    LUT_DATA    <=    9'h143; // C
         default:        LUT_DATA    <=    9'h000;
 	endcase
     end
@@ -216,12 +216,12 @@ begin
         LCD_LINE2+7:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+8:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+9:    LUT_DATA    <=    9'h120; // SP
-        LCD_LINE2+10:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+11:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+12:    LUT_DATA    <=    9'h152 // R
-        LCD_LINE2+13:    LUT_DATA    <=    9'h145 // E
-        LCD_LINE2+14:    LUT_DATA    <=    9'h143 // C
-        LCD_LINE2+15:    LUT_DATA    <=    9'h144 // D
+        LCD_LINE2+10:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+11:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+12:    LUT_DATA    <=    9'h152; // R
+        LCD_LINE2+13:    LUT_DATA    <=    9'h145; // E
+        LCD_LINE2+14:    LUT_DATA    <=    9'h143; // C
+        LCD_LINE2+15:    LUT_DATA    <=    9'h144; // D
         default:        LUT_DATA    <=    9'h000;
 	endcase
     end
@@ -263,12 +263,12 @@ begin
         LCD_LINE2+7:    LUT_DATA    <=    9'h145; // E
         LCD_LINE2+8:    LUT_DATA    <=    9'h143; // C
         LCD_LINE2+9:    LUT_DATA    <=    9'h144; // D
-        LCD_LINE2+10:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+11:    LUT_DATA    <=    9'h150 // P
-        LCD_LINE2+12:    LUT_DATA    <=    9'h141 // A
-        LCD_LINE2+13:    LUT_DATA    <=    9'h155 // U
-        LCD_LINE2+14:    LUT_DATA    <=    9'h153 // S
-        LCD_LINE2+15:    LUT_DATA    <=    9'h145 // E
+        LCD_LINE2+10:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+11:    LUT_DATA    <=    9'h150; // P
+        LCD_LINE2+12:    LUT_DATA    <=    9'h141; // A
+        LCD_LINE2+13:    LUT_DATA    <=    9'h155; // U
+        LCD_LINE2+14:    LUT_DATA    <=    9'h153; // S
+        LCD_LINE2+15:    LUT_DATA    <=    9'h145; // E
         default:        LUT_DATA    <=    9'h000;
 	endcase
     end
@@ -310,12 +310,12 @@ begin
         LCD_LINE2+7:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+8:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+9:    LUT_DATA    <=    9'h120; // SP
-        LCD_LINE2+10:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+11:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+12:    LUT_DATA    <=    9'h150 // P
-        LCD_LINE2+13:    LUT_DATA    <=    9'h14c // L
-        LCD_LINE2+14:    LUT_DATA    <=    9'h141 // A
-        LCD_LINE2+15:    LUT_DATA    <=    9'h159 // Y
+        LCD_LINE2+10:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+11:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+12:    LUT_DATA    <=    9'h150; // P
+        LCD_LINE2+13:    LUT_DATA    <=    9'h14c; // L
+        LCD_LINE2+14:    LUT_DATA    <=    9'h141; // A
+        LCD_LINE2+15:    LUT_DATA    <=    9'h159; // Y
         default:        LUT_DATA    <=    9'h000;
 	endcase
     end
@@ -357,12 +357,12 @@ begin
         LCD_LINE2+7:    LUT_DATA    <=    9'h14c; // L
         LCD_LINE2+8:    LUT_DATA    <=    9'h141; // A
         LCD_LINE2+9:    LUT_DATA    <=    9'h159; // Y
-        LCD_LINE2+10:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+11:    LUT_DATA    <=    9'h150 // P
-        LCD_LINE2+12:    LUT_DATA    <=    9'h141 // A
-        LCD_LINE2+13:    LUT_DATA    <=    9'h155 // U
-        LCD_LINE2+14:    LUT_DATA    <=    9'h153 // S
-        LCD_LINE2+15:    LUT_DATA    <=    9'h145 // E
+        LCD_LINE2+10:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+11:    LUT_DATA    <=    9'h150; // P
+        LCD_LINE2+12:    LUT_DATA    <=    9'h141; // A
+        LCD_LINE2+13:    LUT_DATA    <=    9'h155; // U
+        LCD_LINE2+14:    LUT_DATA    <=    9'h153; // S
+        LCD_LINE2+15:    LUT_DATA    <=    9'h145; // E
         default:        LUT_DATA    <=    9'h000;
 	endcase
     end
@@ -404,12 +404,12 @@ begin
         LCD_LINE2+7:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+8:    LUT_DATA    <=    9'h120; // SP
         LCD_LINE2+9:    LUT_DATA    <=    9'h120; // SP
-        LCD_LINE2+10:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+11:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+12:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+13:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+14:    LUT_DATA    <=    9'h120 // SP
-        LCD_LINE2+15:    LUT_DATA    <=    9'h120 // SP
+        LCD_LINE2+10:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+11:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+12:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+13:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+14:    LUT_DATA    <=    9'h120; // SP
+        LCD_LINE2+15:    LUT_DATA    <=    9'h120; // SP
         default:        LUT_DATA    <=    9'h000;
 	endcase
     end

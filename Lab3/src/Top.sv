@@ -33,8 +33,8 @@ module Top (
 	output [2:0] o_state,
 
 	// SEVENDECODER (optional display)
-	// output [5:0] o_record_time,
-	// output [5:0] o_play_time,
+	output [5:0] o_record_time,
+	output [5:0] o_play_time,
 
 	// LCD (optional display)
 	// input        i_clk_800k,
@@ -83,12 +83,15 @@ assign o_SRAM_LB_N = 1'b0;
 assign o_SRAM_UB_N = 1'b0;
 assign o_state = state_r;
 
+assign o_record_time = addr_record[19:14];
+assign o_play_time = addr_play[19:14];
+
 // below is a simple example for module division
 // you can design these as you like
 
 assign dsp_start 	  = i_key_0 && ((state_r == S_IDLE) || (state_r == S_PLAY_PAUSE));
 assign dsp_pause 	  = i_key_1 && (state_r == S_PLAY);
-assign dsp_stop  	  = i_key_2 && ((state_r == S_PLAY) || (state_r == S_PLAY_PAUSE));
+assign dsp_stop  	  = (i_key_2 && ((state_r == S_PLAY) || (state_r == S_PLAY_PAUSE))) || addr_play>=addr_record;
 assign player_enable  = (state_r == S_PLAY);
 assign recorder_start = i_key_1 && ((state_r == S_IDLE) || (state_r == S_RECD_PAUSE));
 assign recorder_pause = i_key_0 && (state_r == S_RECD);
@@ -98,7 +101,7 @@ assign recorder_stop  = i_key_2 && ((state_r == S_RECD) || (state_r == S_RECD_PA
 // sequentially sent out settings to initialize WM8731 with I2C protocal
 I2cInitializer init0(
 	.i_rst_n(i_rst_n),
-	.i_clk(i_clk_100K),
+	.i_clk(i_clk_100k),
 	.i_start(i2c_start),
 	.o_finished(i2c_finish),
 	.o_sclk(o_I2C_SCLK),
@@ -170,6 +173,7 @@ always_comb begin
 			else begin
 				state_w = state_r;
 			end
+//			state_w = S_IDLE;
 		end
 		S_IDLE: begin
 			if(recorder_start) begin
@@ -229,7 +233,7 @@ always_comb begin
 	endcase
 end
 
-always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
+always_ff @(posedge i_clk or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		state_r <= S_I2C;
 		i2c_start <= 1;
