@@ -69,7 +69,7 @@ module SW_core(
     wire                                    PE_last_A_base_valid    [`READ_MAX_LENGTH:0];
     wire [1:0]                              PE_last_A_base          [`READ_MAX_LENGTH:0];
 
-    genvar gv;
+    genvar gv; //compare with seq B
     generate
         for (gv=0;gv<`READ_MAX_LENGTH;gv=gv+1) begin: PEs
             if (gv==0) begin
@@ -301,6 +301,7 @@ module DP_PE_single(
 
 // *** TODO
 always_comb begin
+    //False Penalty
     //I(i,j)
     o_insert_score = ((i_insert_left_score - 1)>(i_align_left_score - 3)) ? (i_insert_left_score - 1) : (i_align_left_score - 3);
     if(!o_insert_score) o_insert_score = 0;
