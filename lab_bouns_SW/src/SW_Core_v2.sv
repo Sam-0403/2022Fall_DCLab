@@ -186,15 +186,15 @@ module SW_core(
             end
 
             S_input: begin
-               
+               //read
             end
 
             S_calculate: begin
-                           
+               //dp loop             
             end
 
             S_select_highest: begin
-                
+               //update score and col & row
             end
 
             S_done: begin
@@ -300,6 +300,29 @@ module DP_PE_single(
 );
 
 // *** TODO
+always_comb begin
+    //I(i,j)
+    o_insert_score = ((i_insert_left_score - 1)>(i_align_left_score - 3)) ? (i_insert_left_score - 1) : (i_align_left_score - 3);
+    if(!o_insert_score) o_insert_score = 0;
+
+    //D(i,j)
+    o_delete_score = ((i_align_top_score - 1)>(i_insert_top_score - 3)) ? (i_align_top_score - 1) : (i_insert_top_score - 3);
+    if(!o_delete_score) o_delete_score = 0;
+
+    //H(i,j)
+    if(i_A_base == i_B_base)begin
+        o_align_score = (o_insert_score>o_delete_score) ? o_insert_score : o_delete_score;
+        o_align_score = (i_align_diagonal_score + 5>o_align_score) ? i_align_diagonal_score + 5 : o_align_score;
+    end else begin
+        o_align_score = (o_insert_score>o_delete_score) ? o_insert_score : o_delete_score;
+        o_align_score = (i_align_diagonal_score - 2>o_align_score) ? i_align_diagonal_score - 2 : o_align_score;
+        if(!o_align_score) o_align_score = 0;
+    end
+
+end
+
+
+
 
 always@(posedge clk or posedge rst) begin
     if (rst) begin
