@@ -245,11 +245,15 @@ module SW_core(
                 counter_n                                                               = (counter == seq_A_length + seq_B_length - 1) ? 0 : counter + 1;
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = (counter>=seq_A_length+i) ? 0 : 1;
 
+                //======== Not Sure========//
                 highest_score_n                                                         = 0;
                 column_n                                                                = 0;
                 row_n                                                                   = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = PE_score_buff_n[i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = 0;
+                row_highest_scores_n[0]                                                 = PE_score_buff_n[0];
+                for (i=1;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = (PE_score_buff_n[i]>PE_score_buff[i]) ? PE_score_buff_n[i] : PE_score_buff[i];
+                row_highest_columns_n[0]                                                = 0;
+                for (i=1;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = (PE_score_buff_n[i]>PE_score_buff[i]) ? i+1 : i;
+                //======== Not Sure========//
 
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = PE_align_score    [i];
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]              = PE_insert_score   [i];
@@ -269,18 +273,20 @@ module SW_core(
                 counter_n                                                               = (counter == seq_B_length - 1) ? 0 : counter + 1;
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = (counter>=seq_A_length+i) ? 0 : 1;
 
+                //======== Not Sure========//
                 highest_score_n                                                         = (highest_score>row_highest_scores[counter]) ? highest_score : row_highest_scores[counter];
                 column_n                                                                = 0;
                 row_n                                                                   = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = PE_score_buff_n[i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = 0;
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = (PE_score_buff_n[i]>PE_score_buff_n[i-1]) ? PE_score_buff_n[i] : PE_score_buff_n[i-1];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = (PE_score_buff_n[i]>PE_score_buff_n[i-1]) ? i : i-1;
+                //======== Not Sure========//
 
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = PE_align_score    [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]              = PE_insert_score   [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]              = PE_delete_score   [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]              = PE_align_score_d  [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]              = PE_insert_score_d [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]              = PE_delete_score_d [i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = PE_align_score_d  [i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]              = PE_insert_score_d [i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]              = PE_delete_score_d [i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]              = PE_align_score_dd [i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]              = PE_insert_score_dd[i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]              = PE_delete_score_dd[i];
 
                 o_ready                 = 0;
                 o_valid_n               = 0;
