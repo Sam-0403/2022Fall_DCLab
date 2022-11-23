@@ -400,30 +400,35 @@ module DP_PE_single(
 );
 
 // *** TODO
+reg signed [`DP_SW_SCORE_BITWIDTH-1:0] insert_score_temp, insert_score;
+reg signed [`DP_SW_SCORE_BITWIDTH-1:0] delete_score_temp, delete_score;
+reg signed [`DP_SW_SCORE_BITWIDTH-1:0] align_score_temp1, align_score_temp2, align_score;
+
+assign o_insert_score = insert_score;
+assign o_delete_score = delete_score;
+assign o_align_score = align_score;
+
 always_comb begin
     //False Penalty
     //I(i,j)
-    o_insert_score = ((i_insert_left_score - 1)>(i_align_left_score - 3)) ? (i_insert_left_score - 1) : (i_align_left_score - 3);
-    if(!o_insert_score) o_insert_score = 0;
+    insert_score_temp = ((i_insert_left_score - $signed(1))>(i_align_left_score - $signed(3))) ? (i_insert_left_score - $signed(1)) : (i_align_left_score - $signed(3));
+    insert_score = (insert_score_temp<$signed(0)) ? $signed(0) : insert_score_temp;
 
     //D(i,j)
-    o_delete_score = ((i_align_top_score - 1)>(i_insert_top_score - 3)) ? (i_align_top_score - 1) : (i_insert_top_score - 3);
-    if(!o_delete_score) o_delete_score = 0;
+    delete_score_temp = ((i_align_top_score - $signed(1))>(i_insert_top_score - $signed(3))) ? (i_align_top_score - $signed(1)) : (i_insert_top_score - $signed(3));
+    delete_score = (delete_score_temp<$signed(0)) ? $signed(0) : delete_score_temp;
 
     //H(i,j)
     if(i_A_base == i_B_base)begin
-        o_align_score = (o_insert_score>o_delete_score) ? o_insert_score : o_delete_score;
-        o_align_score = (i_align_diagonal_score + 5>o_align_score) ? i_align_diagonal_score + 5 : o_align_score;
+        align_score_temp1 = (insert_score>delete_score) ? insert_score : delete_score;
+        align_score_temp2 = (i_align_diagonal_score + $signed(5)>align_score_temp1) ? i_align_diagonal_score + $signed(5) : align_score_temp1;
+        align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
     end else begin
-        o_align_score = (o_insert_score>o_delete_score) ? o_insert_score : o_delete_score;
-        o_align_score = (i_align_diagonal_score - 2>o_align_score) ? i_align_diagonal_score - 2 : o_align_score;
-        if(!o_align_score) o_align_score = 0;
+        align_score_temp1 = (o_insert_score>o_delete_score) ? insert_score : delete_score;
+        align_score_temp2 = (i_align_diagonal_score - $signed(2)>align_score_temp1) ? i_align_diagonal_score - $signed(2) : align_score_temp1;
+        align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
     end
-
 end
-
-
-
 
 always@(posedge clk or posedge rst) begin
     if (rst) begin
