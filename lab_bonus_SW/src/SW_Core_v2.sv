@@ -407,6 +407,7 @@ reg signed [`DP_SW_SCORE_BITWIDTH-1:0] align_score_temp1, align_score_temp2, ali
 assign o_insert_score = insert_score;
 assign o_delete_score = delete_score;
 assign o_align_score = align_score;
+assign o_the_score = (insert_score>delete_score) ? ((align_score>insert_score) ? (align_score) : (insert_score)) : ((align_score>delete_score) ? (align_score) : (delete_score));
 
 always_comb begin
     //False Penalty
