@@ -267,7 +267,7 @@ module SW_core(
                 // row_highest_scores_n[0]                                                 = PE_score_buff_n[0];
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = (PE_score_buff_n[i]>row_highest_scores[i]) ? PE_score_buff_n[i] : row_highest_scores[i];
                 // row_highest_columns_n[0]                                                = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = (PE_score_buff_n[i]>row_highest_scores[i]) ? i : row_highest_columns[i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = (PE_score_buff_n[i]>row_highest_scores[i]) ? counter-i : row_highest_columns[i];
                 //======== Keep track of column # of the highest scores of each row ========//
 
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = PE_align_score    [i];
@@ -286,7 +286,7 @@ module SW_core(
             S_select_highest: begin
                 //update score and col & row
                 counter_n                                                               = (counter == seq_B_length - 1) ? 0 : counter + 1;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = (counter>=seq_A_length+i) ? 0 : 1;
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = 0;
                 sequence_A_shifter_n                                                    = sequence_A_shifter;
 
                 //======== select the highest score ========//
