@@ -1,3 +1,16 @@
+`define REF_MAX_LENGTH              128
+`define READ_MAX_LENGTH             128
+
+`define REF_LENGTH                  128
+`define READ_LENGTH                 128
+
+//* Score parameters
+`define DP_SW_SCORE_BITWIDTH        10
+
+`define CONST_MATCH_SCORE           1
+`define CONST_MISMATCH_SCORE        -4
+`define CONST_GAP_OPEN              -6
+`define CONST_GAP_EXTEND            -1
 
 // SW Core --------------------------------------------
 module SW_core(
@@ -90,9 +103,9 @@ module SW_core(
                     .i_insert_diagonal_score    ({(`DP_SW_SCORE_BITWIDTH){1'b0}}            ), // (0),
                     .i_delete_diagonal_score    ({(`DP_SW_SCORE_BITWIDTH){1'b0}}            ), // (0),
 
-                    .i_align_left_score         (PE_align_score_d[gv]                       ),
-                    .i_insert_left_score        (PE_insert_score_d[gv]                      ),
-                    .i_delete_left_score        (PE_delete_score_d[gv]                      ),
+                    .i_align_left_score         (PE_align_score_d[gv-1]                       ),
+                    .i_insert_left_score        (PE_insert_score_d[gv-1]                      ),
+                    .i_delete_left_score        (PE_delete_score_d[gv-1]                      ),
 
                     .o_align_score              (PE_align_score[gv]                         ),
                     .o_insert_score             (PE_insert_score[gv]                        ),
@@ -115,15 +128,15 @@ module SW_core(
                     .i_B_base                   (sequence_B[2*`READ_MAX_LENGTH-1-(2*gv)-:2] ),
                     
                     .i_align_diagonal_score     (PE_align_score_dd [gv-1]                   ),
-                    .i_align_top_score          (PE_align_score_d  [gv-1]                   ),
-                    .i_align_left_score         (PE_align_score_d  [gv]                     ),
+                    .i_align_top_score          (PE_align_score_d  [gv]                   ),
+                    .i_align_left_score         (PE_align_score_d  [gv-1]                     ),
 
                     .i_insert_diagonal_score    (PE_insert_score_dd[gv-1]                   ),
-                    .i_insert_top_score         (PE_insert_score_d [gv-1]                   ), 
-                    .i_insert_left_score        (PE_insert_score_d [gv]                     ),                  
+                    .i_insert_top_score         (PE_insert_score_d [gv]                   ), 
+                    .i_insert_left_score        (PE_insert_score_d [gv-1]                     ),                  
                     
                     .i_delete_diagonal_score    (PE_delete_score_dd[gv-1]                   ),                  
-                    .i_delete_left_score        (PE_delete_score_d [gv]                     ),
+                    .i_delete_left_score        (PE_delete_score_d [gv-1]                     ),
 
                     .o_align_score              (PE_align_score[gv]                         ),
                     .o_insert_score             (PE_insert_score[gv]                        ),
@@ -245,6 +258,7 @@ module SW_core(
                 counter_n                                                               = (counter == seq_A_length + seq_B_length - 1) ? 0 : counter + 1;
                 //stop updating
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = (counter>=seq_A_length+i) ? 0 : 1;
+                sequence_A_shifter_n                                                    = sequence_A_shifter << 2;
 
                 //======== Calculate rows' highest score simutaneously ========//
                 highest_score_n                                                         = 0;
@@ -273,6 +287,7 @@ module SW_core(
                 //update score and col & row
                 counter_n                                                               = (counter == seq_B_length - 1) ? 0 : counter + 1;
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = (counter>=seq_A_length+i) ? 0 : 1;
+                sequence_A_shifter_n                                                    = sequence_A_shifter;
 
                 //======== select the highest score ========//
                 highest_score_n                                                         = (highest_score>row_highest_scores[counter]) ? highest_score : row_highest_scores[counter];
@@ -416,21 +431,21 @@ always_comb begin
     //False Penalty
     //I(i,j)
     if(i_A_base_valid && i_B_base_valid)begin
-        insert_score_temp = ((i_insert_left_score - $signed(1))>(i_align_left_score - $signed(3))) ? (i_insert_left_score - $signed(1)) : (i_align_left_score - $signed(3));
+        insert_score_temp = ((i_insert_top_score + `CONST_GAP_EXTEND)>(i_align_top_score + `CONST_GAP_OPEN)) ? (i_insert_top_score + `CONST_GAP_EXTEND) : (i_align_top_score + `CONST_GAP_OPEN);
         insert_score = (insert_score_temp<$signed(0)) ? $signed(0) : insert_score_temp;
 
         //D(i,j)
-        delete_score_temp = ((i_align_top_score - $signed(1))>(i_insert_top_score - $signed(3))) ? (i_align_top_score - $signed(1)) : (i_insert_top_score - $signed(3));
+        delete_score_temp = ((i_align_left_score + `CONST_GAP_OPEN)>(i_delete_left_score + `CONST_GAP_EXTEND)) ? (i_align_left_score + `CONST_GAP_OPEN) : (i_delete_left_score + `CONST_GAP_EXTEND);
         delete_score = (delete_score_temp<$signed(0)) ? $signed(0) : delete_score_temp;
 
         //H(i,j)
         if(i_A_base == i_B_base)begin
             align_score_temp1 = (insert_score>delete_score) ? insert_score : delete_score;
-            align_score_temp2 = (i_align_diagonal_score + $signed(5)>align_score_temp1) ? i_align_diagonal_score + $signed(5) : align_score_temp1;
+            align_score_temp2 = (i_align_diagonal_score + `CONST_MATCH_SCORE>align_score_temp1) ? i_align_diagonal_score + `CONST_MATCH_SCORE : align_score_temp1;
             align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
         end else begin
             align_score_temp1 = (o_insert_score>o_delete_score) ? insert_score : delete_score;
-            align_score_temp2 = (i_align_diagonal_score - $signed(2)>align_score_temp1) ? i_align_diagonal_score - $signed(2) : align_score_temp1;
+            align_score_temp2 = (i_align_diagonal_score + `CONST_MISMATCH_SCORE>align_score_temp1) ? i_align_diagonal_score + `CONST_MISMATCH_SCORE : align_score_temp1;
             align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
         end
     end
