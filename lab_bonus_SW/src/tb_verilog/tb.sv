@@ -95,7 +95,7 @@ module tb;
             i_seq_ref_length 	<= 0;   // (1-based)
             i_seq_read_length 	<= 0;   // (1-based)
             i_ready 			<= 0;
-			
+			$display("========= Wait for SW module ready");
 			// Wait for SW module ready
 			while(!o_ready) @(posedge clk);
 			repeat(4) @(posedge clk);
@@ -114,7 +114,7 @@ module tb;
 			i_seq_ref_length 	<= 0; 	// (1-based)
 			i_seq_read_length 	<= 0; 	// (1-based)
 			i_ready 			<= 1;
-
+		$display("=========  Wait for SW output result");
 			// Wait for SW output result
 			@(posedge o_valid)
 			$display("score %2d = %0d", i, o_alignment_score);
@@ -142,7 +142,7 @@ module tb;
 	end
 
 	initial begin
-		#(500000*CLK)
+		#(5000*CLK)
 		$display("Too slow, abort.");
 		$finish;
 	end

@@ -243,6 +243,7 @@ module SW_core(
             S_calculate: begin
                 //dp loop
                 counter_n                                                               = (counter == seq_A_length + seq_B_length - 1) ? 0 : counter + 1;
+                //stop updating
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = (counter>=seq_A_length+i) ? 0 : 1;
 
                 //======== Calculate rows' highest score simutaneously ========//
@@ -383,6 +384,8 @@ module DP_PE_single(
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_align_top_score,
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_align_left_score, 
 
+
+
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_insert_diagonal_score,
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_insert_top_score,
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_insert_left_score,    // if !(i_A_base_valid && i_B_base_valid), o_insert_score = i_insert_left_score
@@ -412,22 +415,24 @@ assign o_the_score = (insert_score>delete_score) ? ((align_score>insert_score) ?
 always_comb begin
     //False Penalty
     //I(i,j)
-    insert_score_temp = ((i_insert_left_score - $signed(1))>(i_align_left_score - $signed(3))) ? (i_insert_left_score - $signed(1)) : (i_align_left_score - $signed(3));
-    insert_score = (insert_score_temp<$signed(0)) ? $signed(0) : insert_score_temp;
+    if(i_A_base_valid && i_B_base_valid)begin
+        insert_score_temp = ((i_insert_left_score - $signed(1))>(i_align_left_score - $signed(3))) ? (i_insert_left_score - $signed(1)) : (i_align_left_score - $signed(3));
+        insert_score = (insert_score_temp<$signed(0)) ? $signed(0) : insert_score_temp;
 
-    //D(i,j)
-    delete_score_temp = ((i_align_top_score - $signed(1))>(i_insert_top_score - $signed(3))) ? (i_align_top_score - $signed(1)) : (i_insert_top_score - $signed(3));
-    delete_score = (delete_score_temp<$signed(0)) ? $signed(0) : delete_score_temp;
+        //D(i,j)
+        delete_score_temp = ((i_align_top_score - $signed(1))>(i_insert_top_score - $signed(3))) ? (i_align_top_score - $signed(1)) : (i_insert_top_score - $signed(3));
+        delete_score = (delete_score_temp<$signed(0)) ? $signed(0) : delete_score_temp;
 
-    //H(i,j)
-    if(i_A_base == i_B_base)begin
-        align_score_temp1 = (insert_score>delete_score) ? insert_score : delete_score;
-        align_score_temp2 = (i_align_diagonal_score + $signed(5)>align_score_temp1) ? i_align_diagonal_score + $signed(5) : align_score_temp1;
-        align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
-    end else begin
-        align_score_temp1 = (o_insert_score>o_delete_score) ? insert_score : delete_score;
-        align_score_temp2 = (i_align_diagonal_score - $signed(2)>align_score_temp1) ? i_align_diagonal_score - $signed(2) : align_score_temp1;
-        align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
+        //H(i,j)
+        if(i_A_base == i_B_base)begin
+            align_score_temp1 = (insert_score>delete_score) ? insert_score : delete_score;
+            align_score_temp2 = (i_align_diagonal_score + $signed(5)>align_score_temp1) ? i_align_diagonal_score + $signed(5) : align_score_temp1;
+            align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
+        end else begin
+            align_score_temp1 = (o_insert_score>o_delete_score) ? insert_score : delete_score;
+            align_score_temp2 = (i_align_diagonal_score - $signed(2)>align_score_temp1) ? i_align_diagonal_score - $signed(2) : align_score_temp1;
+            align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
+        end
     end
 end
 
