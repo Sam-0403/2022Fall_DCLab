@@ -202,13 +202,13 @@ always_comb begin
                 else if(bytes_counter_r<7'd30) begin
             		if(~avm_waitrequest) begin
 	                    StartRead(STATUS_BASE);
-	                    score_w = score_r << 8;  
+	                    highest_score_w = highest_score_r << 8;  
                 	end
                 end
                 else begin
                     if(~avm_waitrequest) begin
 	                    StartRead(STATUS_BASE);
-	                    score_w = score_r << 8;
+	                    highest_score_w = highest_score_r << 8;
                         column_w = 0;
                         row_w = 0;
                         state_w = S_GET_KEY;
