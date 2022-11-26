@@ -195,10 +195,14 @@ module SW_core(
         // *** TODO
         case(state)
             S_idle: begin
-                sequence_A_n                                                            = 0;
-                sequence_B_n                                                            = 0;
-                seq_A_length_n                                                          = 0;
-                seq_B_length_n                                                          = 0;
+                sequence_A_n                                                            = i_sequence_ref;
+                sequence_B_n                                                            = i_sequence_read;
+                seq_A_length_n                                                          = i_seq_ref_length;
+                seq_B_length_n                                                          = i_seq_read_length;
+                // sequence_A_n                                                            = 0;
+                // sequence_B_n                                                            = 0;
+                // seq_A_length_n                                                          = 0;
+                // seq_B_length_n                                                          = 0;
 
                 counter_n                                                               = 0;
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = 0;
@@ -225,14 +229,18 @@ module SW_core(
 
             S_input: begin
                 //read
-                sequence_A_n                                                            = i_sequence_ref;
-                sequence_B_n                                                            = i_sequence_read;
-                seq_A_length_n                                                          = i_seq_ref_length;
-                seq_B_length_n                                                          = i_seq_read_length;
+                // sequence_A_n                                                            = i_sequence_ref;
+                // sequence_B_n                                                            = i_sequence_read;
+                // seq_A_length_n                                                          = i_seq_ref_length;
+                // seq_B_length_n                                                          = i_seq_read_length;
+                sequence_A_n                                                            = sequence_A;
+                sequence_B_n                                                            = sequence_B;
+                seq_A_length_n                                                          = seq_A_length;
+                seq_B_length_n                                                          = seq_B_length;
 
                 counter_n                                                               = 0;
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = sequence_B_valid[i];
-                sequence_A_shifter_n                                                    = i_sequence_ref;
+                sequence_A_shifter_n                                                    = sequence_A;
 
                 highest_score_n                                                         = 0;
                 column_n                                                                = 0;
