@@ -178,24 +178,41 @@ always_comb begin
                 end
             end
             else begin
-                // dec: 0 ~ 30
-            	if(bytes_counter_r<7'd31) begin
+                // NULL: 0 ~ 6
+            	if(bytes_counter_r<7'd7) begin
             		if(~avm_waitrequest) begin
 	                    StartRead(STATUS_BASE);
-	                    dec_w = dec_r << 8;  
+                	end
+                end
+                // Column: 7 ~ 14
+                else if(bytes_counter_r<7'd15) begin
+            		if(~avm_waitrequest) begin
+	                    StartRead(STATUS_BASE);
+	                    column_w = column_r << 8;  
+                	end
+                end
+                // Row: 15 ~ 22
+                else if(bytes_counter_r<7'd23) begin
+            		if(~avm_waitrequest) begin
+	                    StartRead(STATUS_BASE);
+	                    row_w = row_r << 8;  
+                	end
+                end
+                // Score: 23 ~ 29(30 is the last)
+                else if(bytes_counter_r<7'd30) begin
+            		if(~avm_waitrequest) begin
+	                    StartRead(STATUS_BASE);
+	                    score_w = score_r << 8;  
                 	end
                 end
                 else begin
                     if(~avm_waitrequest) begin
 	                    StartRead(STATUS_BASE);
-	                    dec_w = dec_r << 8;
-                        enc_w = 256'd0;
+	                    score_w = score_r << 8;
+                        column_w = 0;
+                        row_w = 0;
                         state_w = S_GET_KEY;
-                        // Get enc data
-                        bytes_counter_w = 7'd64;
-                        content_counter_w   = content_counter_r + 20'd31;
-                        rst_content_w       = 1'b1;
-								
+                        bytes_counter_w = 7'd0;
                 	end
                 end
             end
@@ -206,12 +223,52 @@ end
 // TODO
 always_ff @(posedge avm_clk or posedge avm_rst) begin
     if (avm_rst) begin
-    	
+    	sequence_ref_r <= 0;
+        sequence_read_r <= 0;
 
+        seq_ref_length_r <= 0;
+        seq_read_length_r <= 0;
+
+        state_r <= S_GET_KEY;
+        bytes_counter_r <= 0;
+
+        avm_address_r <= STATUS_BASE;
+        avm_read_r <= 1;
+        avm_write_r <= 0;
+
+        highest_score_r <= 0;
+        column_r <= 0;
+        row_r <= 0;
+
+        wrapper_valid_r <= 0;
+        sw_ready_r <= 0;
+
+        wrapper_ready_r <= 0;
+        sw_valid_r <= 0;
     end
 	else begin
-    	
+    	sequence_ref_r <= sequence_ref_w;
+        sequence_read_r <= sequence_read_w;
 
+        seq_ref_length_r <= seq_ref_length_w;
+        seq_read_length_r <= seq_read_length_w;
+
+        state_r <= state_w;
+        bytes_counter_r <= bytes_counter_w;
+
+        avm_address_r <= avm_address_w;
+        avm_read_r <= avm_read_w;
+        avm_write_r <= avm_write_w;
+
+        highest_score_r <= highest_score_w;
+        column_r <= column_w;
+        row_r <= row_w;
+
+        wrapper_valid_r <= wrapper_valid_w;
+        sw_ready_r <= sw_ready_w;
+
+        wrapper_ready_r <= wrapper_ready_w;
+        sw_valid_r <= sw_valid_w;
     end
 end
 
