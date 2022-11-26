@@ -31,24 +31,55 @@ localparam TX_OK_BIT   = 6;
 localparam RX_OK_BIT   = 7;
 
 // Feel free to design your own FSM!
+localparam S_GET_KEY = 0;
+localparam S_GET_DATA = 1;
+localparam S_WAIT_CALCULATE = 2;
+localparam S_SEND_DATA = 3;
+
+logic [2*`REF_MAX_LENGTH-1:0] sequence_ref_r, sequence_ref_w;
+logic [2*`READ_MAX_LENGTH-1:0] sequence_read_r, sequence_read_w;
+
+logic [$clog2(`REF_MAX_LENGTH):0] seq_ref_length_r, seq_ref_length_w;
+logic [$clog2(`READ_MAX_LENGTH):0] seq_read_length_r, seq_read_length_w;
+
+logic [1:0] state_r, state_w;
+logic [6:0] bytes_counter_r, bytes_counter_w;   // 0 ~ 127
+
+logic [4:0] avm_address_r, avm_address_w;
+logic avm_read_r, avm_read_w, avm_write_r, avm_write_w;
+
+reg signed [`DP_SW_SCORE_BITWIDTH-1:0]              highest_score_r, highest_score_w;
+reg signed [`DP_SW_SCORE_BITWIDTH-1:0]              sw_highest_score;
+
+reg [$clog2(`REF_MAX_LENGTH)-1:0]                   column_r, column_w;
+reg [$clog2(`REF_MAX_LENGTH)-1:0]                   sw_column;
+
+reg [$clog2(`READ_MAX_LENGTH)-1:0]                  row_r, row_w;
+reg [$clog2(`READ_MAX_LENGTH)-1:0]                  sw_row;
+
+logic wrapper_valid_r, wrapper_valid_w;
+logic sw_ready_r, sw_ready_w;
+
+logic wrapper_ready_r, wrapper_ready_w;
+logic sw_valid_r, sw_valid_w;
 
 // Remember to complete the port connection
 SW_core sw_core(
     .clk				(avm_clk),
     .rst				(avm_rst),
 
-	.o_ready			(),
-    .i_valid			(),
-    .i_sequence_ref		(),
-    .i_sequence_read	(),
-    .i_seq_ref_length	(),
-    .i_seq_read_length	(),
+	.o_ready			(sw_ready_w),
+    .i_valid			(wrapper_valid_r),
+    .i_sequence_ref		(sequence_ref_r),
+    .i_sequence_read	(sequence_read_r),
+    .i_seq_ref_length	(seq_ref_length_r),
+    .i_seq_read_length	(seq_read_length_r),
     
-    .i_ready			(),
-    .o_valid			(),
-    .o_alignment_score	(),
-    .o_column			(),
-    .o_row				()
+    .i_ready			(wrapper_ready_r),
+    .o_valid			(sw_valid_w),
+    .o_alignment_score	(sw_highest_score),
+    .o_column			(sw_column),
+    .o_row				(sw_row)
 );
 
 task StartRead;
@@ -70,7 +101,106 @@ endtask
 
 // TODO
 always_comb begin
-    
+    sequence_ref_w = sequence_ref_r;
+    sequence_read_w = sequence_read_r;
+
+    seq_ref_length_w = seq_ref_length_r;
+    seq_read_length_w = seq_read_length_r;
+
+    state_w = state_r;
+    bytes_counter_w = bytes_counter_r;
+
+    avm_address_w = avm_address_r;
+    avm_read_w = avm_read_r;
+    avm_write_w = avm_write_r;
+
+    highest_score_w = highest_score_r;
+    column_w = column_r;
+    row_w = row_r;
+
+    wrapper_valid_w = wrapper_valid_r;
+
+    wrapper_ready_w = wrapper_ready_r;
+
+    // FSM
+    case(state_r)
+        S_GET_KEY: begin
+            if(~avm_waitrequest & avm_readdata[RX_OK_BIT]) begin
+                StartRead(RX_BASE);
+                bytes_counter_w = bytes_counter_r + 1;
+                state_w         = S_GET_DATA;
+            end
+        end
+        S_GET_DATA: begin
+            if(~avm_waitrequest) begin
+                StartRead(STATUS_BASE);
+                // n: 1 ~ 32 bytes
+                if(bytes_counter_r<=7'd32) begin
+                    sequence_ref_w = (sequence_ref_r<<8) + avm_readdata[7:0];
+                    state_w = S_GET_KEY;
+                end
+                // d: 33 ~ 64 bytes
+                else if(bytes_counter_r<7'd64) begin
+                    sequence_read_w     = (sequence_read_r<<8) + avm_readdata[7:0];
+                    state_w = S_GET_KEY;
+                end
+                else begin
+                    sequence_read_w   = (sequence_read_r<<8) + avm_readdata[7:0];
+                    bytes_counter_w = 7'd0;   
+                    wrapper_valid_w = 1'd1;
+                    
+                    seq_ref_length_w = `REF_LENGTH;
+                    seq_read_length_w = `READ_LENGTH;
+
+                    if(sw_ready_r) begin
+                        state_w     = S_WAIT_CALCULATE;
+                        wrapper_valid_w = 1'd0;
+                        wrapper_ready_w = 1'd1;
+                    end
+                end
+            end
+        end
+        S_WAIT_CALCULATE: begin
+            bytes_counter_w = 7'd0;
+            if(sw_valid_w) begin
+                StartRead(STATUS_BASE);
+                state_w = S_SEND_DATA;
+                highest_score_w = sw_highest_score;
+                column_w = sw_column;
+                row_w = sw_row;
+            end
+        end
+        S_SEND_DATA: begin
+            if(avm_address == STATUS_BASE) begin
+                if(~avm_waitrequest & avm_readdata[TX_OK_BIT]) begin
+                    StartWrite(TX_BASE);
+                    bytes_counter_w = bytes_counter_r + 7'd1;
+                end
+            end
+            else begin
+                // dec: 0 ~ 30
+            	if(bytes_counter_r<7'd31) begin
+            		if(~avm_waitrequest) begin
+	                    StartRead(STATUS_BASE);
+	                    dec_w = dec_r << 8;  
+                	end
+                end
+                else begin
+                    if(~avm_waitrequest) begin
+	                    StartRead(STATUS_BASE);
+	                    dec_w = dec_r << 8;
+                        enc_w = 256'd0;
+                        state_w = S_GET_KEY;
+                        // Get enc data
+                        bytes_counter_w = 7'd64;
+                        content_counter_w   = content_counter_r + 20'd31;
+                        rst_content_w       = 1'b1;
+								
+                	end
+                end
+            end
+        end
+    endcase
 end
 
 // TODO

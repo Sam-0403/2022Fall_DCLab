@@ -96,11 +96,12 @@ module tb;
             i_seq_read_length 	<= 0;   // (1-based)
             i_ready 			<= 0;
 			$display("========= Wait for SW module ready");
+			i_valid 			<= 1;
 			// Wait for SW module ready
 			while(!o_ready) @(posedge clk);
-			repeat(4) @(posedge clk);
-			@(posedge clk)
-			i_valid 			<= 1;
+			// repeat(4) @(posedge clk);
+			// @(posedge clk)
+			i_valid 			<= 0;
 			i_sequence_ref 		<= {test_data_ref, {(`REF_MAX_LENGTH*2-`REF_LENGTH*2){1'b0}}};		// reference seq
 			i_sequence_read 	<= {test_data_read, {(`READ_MAX_LENGTH*2-`READ_LENGTH*2){1'b0}}};  	// read seq
 			i_seq_ref_length 	<= `REF_LENGTH;   				// (1-based)
