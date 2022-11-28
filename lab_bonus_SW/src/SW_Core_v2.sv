@@ -1,3 +1,4 @@
+
 `define REF_MAX_LENGTH              128
 `define READ_MAX_LENGTH             128
 
@@ -82,7 +83,7 @@ module SW_core(
     wire                                    PE_last_A_base_valid    [`READ_MAX_LENGTH:0];
     wire [1:0]                              PE_last_A_base          [`READ_MAX_LENGTH:0];
 
-    genvar gv; //compare with seq B
+    genvar gv;
     generate
         for (gv=0;gv<`READ_MAX_LENGTH;gv=gv+1) begin: PEs
             if (gv==0) begin
@@ -91,7 +92,7 @@ module SW_core(
                     .clk                        (clk),
                     .rst                        (rst),
                     ///////////////////////////////////// I/Os //////////////////////////////////////
-                    .i_A_base_valid             ((state == S_calculate) && (counter < seq_A_length)),
+                    .i_A_base_valid             ((state == S_calculate) && (counter < `READ_MAX_LENGTH)),
                     .i_A_base                   (sequence_A_shifter[2*`REF_MAX_LENGTH-1-:2] ),
 
                     .i_B_base_valid             (sequence_B_valid[gv]                       ),
@@ -103,9 +104,9 @@ module SW_core(
                     .i_insert_diagonal_score    ({(`DP_SW_SCORE_BITWIDTH){1'b0}}            ), // (0),
                     .i_delete_diagonal_score    ({(`DP_SW_SCORE_BITWIDTH){1'b0}}            ), // (0),
 
-                    .i_align_left_score         (PE_align_score_d[gv-1]                       ),
-                    .i_insert_left_score        (PE_insert_score_d[gv-1]                      ),
-                    .i_delete_left_score        (PE_delete_score_d[gv-1]                      ),
+                    .i_align_left_score         (PE_align_score_d[gv]                       ),
+                    .i_insert_left_score        (PE_insert_score_d[gv]                      ),
+                    .i_delete_left_score        (PE_delete_score_d[gv]                      ),
 
                     .o_align_score              (PE_align_score[gv]                         ),
                     .o_insert_score             (PE_insert_score[gv]                        ),
@@ -128,15 +129,15 @@ module SW_core(
                     .i_B_base                   (sequence_B[2*`READ_MAX_LENGTH-1-(2*gv)-:2] ),
                     
                     .i_align_diagonal_score     (PE_align_score_dd [gv-1]                   ),
-                    .i_align_top_score          (PE_align_score_d  [gv]                   ),
-                    .i_align_left_score         (PE_align_score_d  [gv-1]                     ),
+                    .i_align_top_score          (PE_align_score_d  [gv-1]                   ),
+                    .i_align_left_score         (PE_align_score_d  [gv]                     ),
 
                     .i_insert_diagonal_score    (PE_insert_score_dd[gv-1]                   ),
-                    .i_insert_top_score         (PE_insert_score_d [gv]                   ), 
-                    .i_insert_left_score        (PE_insert_score_d [gv-1]                     ),                  
+                    .i_insert_top_score         (PE_insert_score_d [gv-1]                   ), 
+                    .i_insert_left_score        (PE_insert_score_d [gv]                     ),                  
                     
                     .i_delete_diagonal_score    (PE_delete_score_dd[gv-1]                   ),                  
-                    .i_delete_left_score        (PE_delete_score_d [gv-1]                     ),
+                    .i_delete_left_score        (PE_delete_score_d [gv]                     ),
 
                     .o_align_score              (PE_align_score[gv]                         ),
                     .o_insert_score             (PE_insert_score[gv]                        ),
@@ -156,8 +157,8 @@ module SW_core(
         case(state)
             S_idle:             state_n = (i_valid) ? S_input : state;
             S_input:            state_n = S_calculate;
-            S_calculate:        state_n = (counter == seq_A_length + seq_B_length - 1) ? S_select_highest : state;
-            S_select_highest:   state_n = (counter == seq_B_length - 1) ? S_done : state;
+            S_calculate:        state_n = (counter == `READ_MAX_LENGTH + `REF_MAX_LENGTH - 1) ? S_select_highest : state;
+            S_select_highest:   state_n = (counter == `REF_LENGTH - 1) ? S_done : state;
             S_done:             state_n = (i_ready) ? S_idle : state;
         endcase
     end
@@ -195,134 +196,86 @@ module SW_core(
         // *** TODO
         case(state)
             S_idle: begin
-                // sequence_A_n                                                            = i_sequence_ref;
-                // sequence_B_n                                                            = i_sequence_read;
-                // seq_A_length_n                                                          = i_seq_ref_length;
-                // seq_B_length_n                                                          = i_seq_read_length;
-                sequence_A_n                                                            = 0;
-                sequence_B_n                                                            = 0;
-                seq_A_length_n                                                          = 0;
-                seq_B_length_n                                                          = 0;
+                
+                if(i_valid)begin
+                    sequence_A_n = i_sequence_ref;
+                    sequence_B_n = i_sequence_read;
+                    seq_A_length_n = i_seq_ref_length;
+                    seq_B_length_n = i_seq_read_length;
+                end
+                else begin
+                    sequence_A_n = 0;
+                    sequence_B_n = 0;
+                    seq_A_length_n = 0;
+                    seq_B_length_n = 0;
 
-                counter_n                                                               = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = 0;
-                sequence_A_shifter_n                                                    = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]    = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]   = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]    = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]    = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]    = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]    = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]    = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]    = 0;
 
-                highest_score_n                                                         = 0;
-                column_n                                                                = 0;
-                row_n                                                                   = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i] = 0;
 
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]              = 0;
-
-                o_ready                 = (i_valid) ? 1 : 0;
-                o_valid_n               = 0;
-                o_column_n              = 0;
-                o_row_n                 = 0;
+                    counter_n = 0;
+                    highest_score_n = 0;
+                    column_n = 0;
+                    row_n = 0;
+                    o_ready = 1;
+                    o_valid_n = 0;
+                end
             end
 
             S_input: begin
-                //read
-                sequence_A_n                                                            = i_sequence_ref;
-                sequence_B_n                                                            = i_sequence_read;
-                seq_A_length_n                                                          = i_seq_ref_length;
-                seq_B_length_n                                                          = i_seq_read_length;
-                // sequence_A_n                                                            = sequence_A;
-                // sequence_B_n                                                            = sequence_B;
-                // seq_A_length_n                                                          = seq_A_length;
-                // seq_B_length_n                                                          = seq_B_length;
-
-                counter_n                                                               = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = sequence_B_valid[i];
-                sequence_A_shifter_n                                                    = i_sequence_ref;
-
-                highest_score_n                                                         = 0;
-                column_n                                                                = 0;
-                row_n                                                                   = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = 0;
-
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]              = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]              = 0;
-
-                o_ready                 = 0;
-                o_valid_n               = 0;
-                o_column_n              = 0;
-                o_row_n                 = 0;
+               o_ready = 0;
+               for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i] = 1;
+               sequence_A_shifter_n = sequence_A;
             end
 
             S_calculate: begin
-                //dp loop
-                counter_n                                                               = (counter == seq_A_length + seq_B_length - 1) ? 0 : counter + 1;
-                //stop updating
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = (counter>=seq_A_length+i || counter<i) ? 0 : 1;
-                sequence_A_shifter_n                                                    = sequence_A_shifter << 2;
+                o_ready = 0;
+                counter_n = counter + 1;
+                if(counter == `READ_MAX_LENGTH + `REF_MAX_LENGTH - 1) counter_n = 0;
+                for(int i = 0; i < `READ_MAX_LENGTH; i = i + 1)begin
+                    PE_align_score_d_n[i] = PE_align_score[i]; 
+                    PE_align_score_dd_n[i] = PE_align_score_d[i];
+                    PE_insert_score_d_n[i] = PE_insert_score[i];
+                    PE_insert_score_dd_n[i] = PE_insert_score_d[i];
+                    PE_delete_score_d_n[i] = PE_delete_score[i];
+                    PE_delete_score_dd_n[i] = PE_delete_score_d[i];
+                end
 
-                //======== Calculate rows' highest score simutaneously ========//
-                highest_score_n                                                         = 0;
-                column_n                                                                = 0;
-                row_n                                                                   = 0;
-                // row_highest_scores_n[0]                                                 = PE_score_buff_n[0];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = (PE_score_buff_n[i]>row_highest_scores[i]) ? PE_score_buff_n[i] : row_highest_scores[i];
-                // row_highest_columns_n[0]                                                = 0;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = (PE_score_buff_n[i]>row_highest_scores[i]) ? counter-i : row_highest_columns[i];
-                //======== Keep track of column # of the highest scores of each row ========//
+                sequence_A_shifter_n = sequence_A_shifter << 2;
 
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = PE_align_score    [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]              = PE_insert_score   [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]              = PE_delete_score   [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]              = PE_align_score_d  [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]              = PE_insert_score_d [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]              = PE_delete_score_d [i];
 
-                o_ready                 = 0;
-                o_valid_n               = 0;
-                o_column_n              = 0;
-                o_row_n                 = 0;
+                for(int i = 0; i < `READ_MAX_LENGTH; i = i + 1)begin
+                    if(PE_score_buff[i] > row_highest_scores[i])begin
+                        row_highest_scores_n[i] = PE_score_buff[i];
+                        row_highest_columns_n[i] = counter - 1 - i; 
+                    end
+                end
             end
 
             S_select_highest: begin
-                //update score and col & row
-                counter_n                                                               = (counter == seq_B_length - 1) ? 0 : counter + 1;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i]                = 0;
-                sequence_A_shifter_n                                                    = sequence_A_shifter;
+                o_ready = 0;
+                counter_n = counter + 1;
+                if(counter == `REF_MAX_LENGTH - 1) counter_n = 0;
 
-                //======== select the highest score ========//
-                highest_score_n                                                         = (highest_score>row_highest_scores[counter]) ? highest_score : row_highest_scores[counter];
-                column_n                                                                = (highest_score>row_highest_scores[counter]) ? row_highest_columns[counter] : column;
-                row_n                                                                   = (highest_score>row_highest_scores[counter]) ? counter : row;
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]              = row_highest_scores[i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i]             = row_highest_columns[i];
-                //======== calculate the corresponding row(keep track), column(according to row) ========//
-
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]              = PE_align_score_d  [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]              = PE_insert_score_d [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]              = PE_delete_score_d [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]              = PE_align_score_dd [i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]              = PE_insert_score_dd[i];
-                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]              = PE_delete_score_dd[i];
-
-                o_ready                 = 0;
-                o_valid_n               = 0;
-                o_column_n              = 0;
-                o_row_n                 = 0;
+                if(row_highest_scores[counter] > highest_score)begin
+                    highest_score_n = row_highest_scores[counter];
+                    row_n = counter;
+                    column_n = row_highest_columns[counter];
+                end
             end
 
             S_done: begin
-                o_ready                 = 0;
-                o_valid_n               = 1;
-                o_column_n              = column;
-                o_row_n                 = row;
+                o_ready = 0;
+                o_column_n = column;
+                o_row_n = row;
+                o_valid_n = 1;
             end
         endcase
     end
@@ -407,8 +360,6 @@ module DP_PE_single(
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_align_top_score,
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_align_left_score, 
 
-
-
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_insert_diagonal_score,
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_insert_top_score,
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_insert_left_score,    // if !(i_A_base_valid && i_B_base_valid), o_insert_score = i_insert_left_score
@@ -426,46 +377,116 @@ module DP_PE_single(
 );
 
 // *** TODO
-reg signed [`DP_SW_SCORE_BITWIDTH-1:0] insert_score_temp, insert_score;
-reg signed [`DP_SW_SCORE_BITWIDTH-1:0] delete_score_temp, delete_score;
-reg signed [`DP_SW_SCORE_BITWIDTH-1:0] align_score_temp1, align_score_temp2, align_score;
+wire signed [`DP_SW_SCORE_BITWIDTH:0] align_diagonal_A_extended = i_align_diagonal_score;
+wire signed [`DP_SW_SCORE_BITWIDTH:0] insert_diagonal_A_extended = i_insert_diagonal_score;
+wire signed [`DP_SW_SCORE_BITWIDTH:0] delete_diagonal_A_extended = i_delete_diagonal_score;
 
-assign o_insert_score = insert_score;
-assign o_delete_score = delete_score;
-assign o_align_score = align_score;
-assign o_the_score = (insert_score>delete_score) ? ((align_score>insert_score) ? (align_score) : (insert_score)) : ((align_score>delete_score) ? (align_score) : (delete_score));
+wire signed [`DP_SW_SCORE_BITWIDTH:0] align_left_A_extended = i_align_left_score;
+wire signed [`DP_SW_SCORE_BITWIDTH:0] insert_left_A_extended = i_insert_left_score;
+wire signed [`DP_SW_SCORE_BITWIDTH:0] delete_left_A_extended = i_delete_left_score;
 
+wire signed [`DP_SW_SCORE_BITWIDTH:0] align_top_A_extended = i_align_top_score;
+wire signed [`DP_SW_SCORE_BITWIDTH:0] insert_top_A_extended = i_insert_top_score;
+
+logic signed [`DP_SW_SCORE_BITWIDTH-1:0] a1_r, a1_w, i1_r, i1_w, a2_r, a2_w, d2_r, d2_w, a3_r, a3_w, i3_r, i3_w, d3_r, d3_w;
+logic signed [`DP_SW_SCORE_BITWIDTH-1:0] weight_r, weight_w;
+
+logic signed [`DP_SW_SCORE_BITWIDTH-1:0] align_score_r, align_score_w, insert_score_r, insert_score_w, delete_score_r, delete_score_w, the_score_r, the_score_w;
+
+assign o_align_score = align_score_w;
+assign o_insert_score = insert_score_w;
+assign o_delete_score = delete_score_w;
+assign o_the_score = the_score_w;
+
+// *** TODO
 always_comb begin
-    //False Penalty
-    //I(i,j)
-    if(i_A_base_valid && i_B_base_valid)begin
-        insert_score_temp = ((i_insert_top_score + `CONST_GAP_EXTEND)>(i_align_top_score + `CONST_GAP_OPEN)) ? (i_insert_top_score + `CONST_GAP_EXTEND) : (i_align_top_score + `CONST_GAP_OPEN);
-        insert_score = (insert_score_temp<$signed(0)) ? $signed(0) : insert_score_temp;
-
-        //D(i,j)
-        delete_score_temp = ((i_align_left_score + `CONST_GAP_OPEN)>(i_delete_left_score + `CONST_GAP_EXTEND)) ? (i_align_left_score + `CONST_GAP_OPEN) : (i_delete_left_score + `CONST_GAP_EXTEND);
-        delete_score = (delete_score_temp<$signed(0)) ? $signed(0) : delete_score_temp;
-
-        //H(i,j)
-        if(i_A_base == i_B_base)begin
-            align_score_temp1 = (insert_score>delete_score) ? insert_score : delete_score;
-            align_score_temp2 = (i_align_diagonal_score + `CONST_MATCH_SCORE>align_score_temp1) ? i_align_diagonal_score + `CONST_MATCH_SCORE : align_score_temp1;
-            align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
-        end else begin
-            align_score_temp1 = (o_insert_score>o_delete_score) ? insert_score : delete_score;
-            align_score_temp2 = (i_align_diagonal_score + `CONST_MISMATCH_SCORE>align_score_temp1) ? i_align_diagonal_score + `CONST_MISMATCH_SCORE : align_score_temp1;
-            align_score = (align_score_temp2<$signed(0)) ? $signed(0) : align_score_temp2;
-        end
+    align_score_w = align_score_r;
+    insert_score_w = insert_score_r;
+    delete_score_w = delete_score_r;
+    the_score_w = the_score_r;
+    a1_w = a1_r;
+    i1_w = i1_r;
+    a2_w = a2_r;
+    d2_w = d2_r;
+    a3_w = a3_r;
+    i3_w = i3_r;
+    d3_w = d3_r;
+    weight_w = weight_r;
+    if(!(i_A_base_valid && i_B_base_valid))begin
+        align_score_w = i_align_left_score;
+        insert_score_w = i_insert_left_score;
+        delete_score_w = i_delete_left_score;
+        if(o_align_score > o_insert_score && o_align_score > o_delete_score && o_align_score > 0) the_score_w = align_score_w;
+        else if(insert_score_w > delete_score_w && insert_score_w > 0) the_score_w = insert_score_w;
+        else if(delete_score_w > 0) the_score_w = delete_score_w;
+        else the_score_w = 0;
     end
+    else begin
+        // insert score operation
+        a1_w = $signed(align_top_A_extended) + $signed(`CONST_GAP_OPEN);
+        i1_w = $signed(insert_top_A_extended) + $signed(`CONST_GAP_EXTEND);
+        if(i1_w > a1_w && i1_w > 0) insert_score_w = i1_w;
+        else if(a1_w > 0) insert_score_w = a1_w;
+        else insert_score_w = 0;
+
+        // delete score operation
+        a2_w = $signed(align_left_A_extended) + $signed(`CONST_GAP_OPEN);
+        d2_w = $signed(delete_left_A_extended) + $signed(`CONST_GAP_EXTEND);
+        if(d2_w > a2_w && d2_w > 0) delete_score_w = d2_w;
+        else if(a2_w > 0) delete_score_w = a2_w;
+        else delete_score_w = 0;
+
+        // align score operation
+        if(i_A_base == i_B_base) weight_w = $signed(`CONST_MATCH_SCORE);
+        else weight_w = $signed(`CONST_MISMATCH_SCORE);
+        a3_w = $signed(align_diagonal_A_extended) + $signed(weight_w);
+        i3_w = $signed(insert_diagonal_A_extended) + $signed(weight_w);
+        d3_w = $signed(delete_diagonal_A_extended) + $signed(weight_w);
+        if(d3_w > a3_w && d3_w > i3_w && d3_w > 0) align_score_w = d3_w;
+        else if(i3_w > a3_w && i3_w > 0) align_score_w = i3_w;
+        else if (a3_w > 0) align_score_w = a3_w;
+        else align_score_w = 0;
+
+        // score opetaion
+        if(align_score_w > insert_score_w && align_score_w > delete_score_w && align_score_w > 0) the_score_w = align_score_w;
+        else if(insert_score_w > delete_score_w && insert_score_w > 0) the_score_w = insert_score_w;
+        else if(delete_score_w > 0) the_score_w = delete_score_w;
+        else the_score_w = 0;
+    end
+
 end
 
 always@(posedge clk or posedge rst) begin
     if (rst) begin
         o_last_A_base_valid <= 0;
         o_last_A_base       <= 0;
+        align_score_r <= 0;
+        insert_score_r <= 0;
+        delete_score_r <= 0;
+        the_score_r <= 0;
+        a1_r <= 0;
+        i1_r <= 0;
+        a2_r <= 0;
+        d2_r <= 0;
+        a3_r <= 0;
+        i3_r <= 0;
+        d3_r <= 0;
+        weight_r <= 0;
     end else begin
         o_last_A_base_valid <= i_A_base_valid;
         o_last_A_base       <= i_A_base;
+        align_score_r <= align_score_w;
+        insert_score_r <= insert_score_w;
+        delete_score_r <= delete_score_w;
+        the_score_r <= the_score_w;
+        a1_r <= a1_w;
+        i1_r <= i1_w;
+        a2_r <= a2_w;
+        d2_r <= d2_w;
+        a3_r <= a3_w;
+        i3_r <= i3_w;
+        d3_r <= d3_w;
+        weight_r <= weight_w;
     end
 end
 
